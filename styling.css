@@ -1,0 +1,27 @@
+html, body {margin: 0; height: 100%; overflow: hidden; background-color: #f8163c; }
+
+#title {
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    color: #f9f9f9;
+    font-size: 24vh;
+}
+
+#main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    height: 100vh;
+    overflow-y: auto;  /* Allows scrolling if the content exceeds viewport height */
+    padding: 20px;
+}
+
+.graph-container {
+    width: 80%;  /* Adjust as needed for your layout */
+    max-width: 800px;  /* Optional: to limit the maximum width */
+    margin: 20px 0;  /* Space between each graph */
+    padding: 20px;
+    border: 1px solid #ccc;  /* Optional: for a border around each graph */
+    background-color: #000000;  /* Optional: background color for each graph */
+    box-shadow: 0 2px 4px #f9f9f9;
+}
