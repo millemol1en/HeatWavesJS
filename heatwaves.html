@@ -6,11 +6,20 @@
 <body>
 	<div id="main-container">
         <h1 id="title">Heat Waves</h1>
-        <div class="graph-container" id="radial-heat-wave">
+
+        <div class="component-container" id="molecule-container">
 
         </div>
-        <div class="graph-container" id="interactive-particle">
 
+        <div class="component-container" id="wave-svg-container">
+            <svg id="wave-svg" width="100%" height="150">
+                <defs>
+                    <linearGradient id="b1xGradient">
+                        <stop offset="0%" style="stop-color: #18e589;" />
+                        <stop offset="100%" style="stop-color: #2870f0;" />
+                    </linearGradient>
+                </defs>
+            </svg>
         </div>
     </div>
 	<script src="https://d3js.org/d3.v7.min.js"></script>
