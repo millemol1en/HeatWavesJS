@@ -26,7 +26,7 @@ html, body {margin: 0; height: 100%; overflow: hidden; background-color: #f8163c
 
 .component-container {
     height: 100%;
-    width: 100vw;  /* Adjust as needed for your layout */
+    width: 100%;  /* Adjust as needed for your layout */
     max-width: 800px;  /* Optional: to limit the maximum width */
     margin: 20px 0;  /* Space between each graph */
     border: 1px solid #ccc;  /* Optional: for a border around each graph */
