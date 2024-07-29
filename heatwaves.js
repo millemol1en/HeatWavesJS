@@ -67,6 +67,16 @@ function drawChart() {
             .ease(d3.easeLinear)
             .attr("stroke-dashoffset", 0);
 
+        // path
+        //     .on("mouseover", function(event, d) {
+        //         d3.select(this).attr("r", 6).attr("fill", "orange");
+        //         showInfo(d);
+        //     })
+        //     .on("mouseout", function() {
+        //         d3.select(this).attr("r", 3).attr("fill", "red");
+        //         hideInfo();
+        //     });
+
         const yearLabel = d3.select("#year-label");
 
         const numDataPoints = OSTData[OSTData.length - 1].date.getFullYear() - OSTData[0].date.getFullYear();
@@ -75,9 +85,9 @@ function drawChart() {
 
         d3.interval(() => {
             if (currentYear < 2024) {
-                currentYear++;
-            
                 yearLabel.text(currentYear);
+
+                currentYear++;
             }
         }, 8000 / numDataPoints);
 }
