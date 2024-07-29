@@ -41,6 +41,9 @@ function drawChart() {
             .domain([d3.min(OSTData, d => d.temp), d3.max(OSTData, d => d.temp)])
             .range([innerHeight, 0]);
 
+        const colorScale = d3.scaleSequential(d3.interpolateRdBu)
+            .domain([d3.max(OSTData, d => d.temp), d3.min(OSTData, d => d.temp)]);
+
         const lineGenerator = d3.line()
             .x(d => xScale(d.date))
             .y(d => yScale(d.temp));
@@ -48,10 +51,26 @@ function drawChart() {
         const g = svg.append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
+        // Define the gradient
+        const gradient = svg.append("defs")
+            .append("linearGradient")
+            .attr("id", "temperature-gradient")
+            .attr("x1", "0%")
+            .attr("y1", "0%")
+            .attr("x2", "100%")
+            .attr("y2", "0%");
+
+        // Add gradient stops based on the temperature data
+        OSTData.forEach((d, i) => {
+            gradient.append("stop")
+                .attr("offset", `${(i / (OSTData.length - 1)) * 100}%`)
+                .attr("stop-color", colorScale(d.temp));
+        });
+
         g.append("path")
             .datum(OSTData)
             .attr("fill", "none")
-            .attr("stroke", "url(#b1xGradient)")
+            .attr("stroke", "url(#temperature-gradient)")
             .attr("stroke-width", 2)
             .attr("d", lineGenerator);
 
@@ -84,7 +103,7 @@ function drawChart() {
         let currentYear  = 1982;
 
         d3.interval(() => {
-            if (currentYear < 2024) {
+            if (currentYear <= 2024) {
                 yearLabel.text(currentYear);
 
                 currentYear++;
