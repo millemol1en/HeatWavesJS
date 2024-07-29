@@ -17,6 +17,7 @@ function loadData() {
 
 function app() {
     loadData().then(() => {
+        
         drawChart();
     });
 }
@@ -62,22 +63,23 @@ function drawChart() {
             .attr("stroke-dasharray", `${totalLength} ${totalLength}`)
             .attr("stroke-dashoffset", totalLength)
             .transition()
-            .duration(5000)
+            .duration(8000)
             .ease(d3.easeLinear)
             .attr("stroke-dashoffset", 0);
 
         const yearLabel = d3.select("#year-label");
 
-        const numDataPoints = OSTData.length;
-        let currentIndex = 0;
+        const numDataPoints = OSTData[OSTData.length - 1].date.getFullYear() - OSTData[0].date.getFullYear();
+        console.log(numDataPoints);
+        let currentYear  = 1982;
 
         d3.interval(() => {
-            if (currentIndex < numDataPoints) {
-                const currentDate = OSTData[currentIndex].date;
-                yearLabel.text(currentDate.getFullYear());
-                currentIndex++;
+            if (currentYear < 2024) {
+                currentYear++;
+            
+                yearLabel.text(currentYear);
             }
-        }, 5000 / numDataPoints);
+        }, 8000 / numDataPoints);
 }
 
 app();
