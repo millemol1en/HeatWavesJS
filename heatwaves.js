@@ -118,36 +118,49 @@ function drawSequentialAnimatedCircularVisualization() {
     const height = 800;
     const innerRadius = 100;
     const outerRadius = Math.min(width, height) / 2 - 50;
-  
+
     // Set up the SVG container
     let svg = d3.select("#circle-svg");
     if (svg.empty()) {
-      svg = d3.select("body").append("svg").attr("id", "wave-svg");
+      svg = d3.select("body").append("svg").attr("id", "circle-svg");
     }
-  
+
     svg
       .attr("width", width)
       .attr("height", height)
       .selectAll("*").remove(); // Clear previous content if any
-  
+
     const g = svg.append("g")
       .attr("transform", `translate(${width / 2},${height / 2})`);
-  
+
     // Define scales for angle (theta) and radius (r)
     const theta = d3.scaleUtc()
       .domain([Date.UTC(1982, 0, 1), Date.UTC(2024, 0, 1)])
       .range([0, 2 * Math.PI]);
-  
+
     const r = d3.scaleLinear()
       .domain([d3.min(OSTData, d => d.temp), d3.max(OSTData, d => d.temp)])
       .range([innerRadius, outerRadius]);
-  
+
     // Define the color scale with blue for cooler temperatures and red for warmer
     const radialColour = d3.scaleSequential(d3.interpolateRdBu)
       .domain([d3.max(OSTData, d => d.temp), d3.min(OSTData, d => d.temp)]);
-  
+
+    // Add a text element for displaying the current year
+    const yearText = g.append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", "0.35em")
+      .attr("font-size", "3em")
+      .attr("fill", "#444");
+
     // Function to draw and animate each year's data
     function animateYearData(yearData, index) {
+      // Update the year display
+      const year = yearData[0].date.getUTCFullYear();
+      setTimeout(() => {
+        yearText.text(year);
+      }, index * 100); // Update year text with the same delay
+
       g.selectAll(".year-path-" + index)
         .data(yearData)
         .enter().append("path")
@@ -174,53 +187,13 @@ function drawSequentialAnimatedCircularVisualization() {
           };
         });
     }
-  
+
     // Group data by year and animate sequentially
     const dataByYear = d3.groups(OSTData, d => d.date.getUTCFullYear());
     dataByYear.forEach((yearGroup, index) => {
       animateYearData(yearGroup[1], index);
     });
   
-    // Draw axes
-
-    /*const thetaAxis = g => g
-      .call(g => g.selectAll("g")
-        .data(theta.ticks())
-        .enter().append("g")
-        .call(g => g.append("path")
-          .attr("stroke", "#000")
-          .attr("stroke-opacity", 0.2)
-          .attr("d", d => `
-            M${d3.pointRadial(theta(d), innerRadius)}
-            L${d3.pointRadial(theta(d), outerRadius)}
-          `))
-        .call(g => g.append("text")
-          .attr("transform", d => `translate(${d3.pointRadial(theta(d), outerRadius + 10)})`)
-          .attr("dy", "0.35em")
-          .attr("text-anchor", d => theta(d) < Math.PI ? "start" : "end")
-          .text(d3.utcFormat("%Y-%m"))));
-  
-    g.append("g")
-      .call(thetaAxis);
-    
-    const rAxis = g => g
-      .call(g => g.selectAll("g")
-        .data(r.ticks())
-        .enter().append("g")
-        .attr("fill", "none")
-        .call(g => g.append("circle")
-          .attr("stroke", "#000")
-          .attr("stroke-opacity", 0.2)
-          .attr("r", r))
-        .call(g => g.append("text")
-          .attr("x", -6)
-          .attr("y", d => -r(d))
-          .attr("dy", "0.35em")
-          .text(d => `${d}°C`)));
-  
-    g.append("g")
-      .call(rAxis);
-      */
   }
 
 app();
