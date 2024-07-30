@@ -157,7 +157,7 @@ function drawSequentialAnimatedCircularVisualization() {
       .attr("text-anchor", "middle")
       .attr("dy", "0.35em")
       .attr("font-size", "1.5em")
-      .attr("fill", "#444");
+      .attr("fill", "#ffffff");
 
     // Function to draw and animate each year's data
     function animateYearData(yearData, index) {
