@@ -125,7 +125,7 @@ function drawSequentialAnimatedCircularVisualization() {
     const innerRadius = 100;
     const outerRadius = Math.min(width, height) / 2 - 50;
 
-    // Set up the SVG container
+    // Set up SVG container
     let svg = d3.select("#circle-svg");
     if (svg.empty()) {
       svg = d3.select("body").append("svg").attr("id", "circle-svg");
@@ -134,7 +134,7 @@ function drawSequentialAnimatedCircularVisualization() {
     svg
       .attr("width", width)
       .attr("height", height)
-      .selectAll("*").remove(); // Clear previous content if any
+      .selectAll("*").remove(); 
 
     const g = svg.append("g")
       .attr("transform", `translate(${width / 2},${height / 2})`);
@@ -156,7 +156,7 @@ function drawSequentialAnimatedCircularVisualization() {
     const yearText = g.append("text")
       .attr("text-anchor", "middle")
       .attr("dy", "0.35em")
-      .attr("font-size", "3em")
+      .attr("font-size", "1.5em")
       .attr("fill", "#444");
 
     // Function to draw and animate each year's data
@@ -165,7 +165,7 @@ function drawSequentialAnimatedCircularVisualization() {
       const year = yearData[0].date.getUTCFullYear();
       setTimeout(() => {
         yearText.text(year);
-      }, index * 100); // Update year text with the same delay
+      }, index * 165); // Update year text with the same delay
 
       g.selectAll(".year-path-" + index)
         .data(yearData)

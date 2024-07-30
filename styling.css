@@ -3,7 +3,8 @@ html, body {margin: 0; height: 100%; overflow: hidden; background-color: #f8163c
 #title {
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
     color: #f9f9f9;
-    font-size: 14vh;
+    font-size: 10vh;
+    margin-bottom: 0;
 }
 
 #main-container {
