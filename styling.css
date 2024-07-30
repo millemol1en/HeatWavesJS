@@ -4,17 +4,17 @@ html, body {
     overflow: visible; 
     background-image: url('data/Ocean.jpg'); 
     }
-
+/*old, white colour: f9f9f9*/
 #title {
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-    color: #f9f9f9;
+    color: #ff8550;
     font-size: 10vh;
     margin-bottom: 0;
 }
 
 #provocative-text {
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-    color: #f9f9f9;
+    color: #ff8550;
     font-size: 2vh;
     margin-bottom: 0;
     text-align: center;
