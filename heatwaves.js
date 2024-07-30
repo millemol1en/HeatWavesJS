@@ -19,6 +19,7 @@ function app() {
     loadData().then(() => {
         
         drawChart();
+        drawSequentialAnimatedCircularVisualization()
     });
 }
 
@@ -110,5 +111,116 @@ function drawChart() {
             }
         }, 8000 / numDataPoints);
 }
+
+function drawSequentialAnimatedCircularVisualization() {
+    // Define the dimensions and margins for the SVG container
+    const width = 800;
+    const height = 800;
+    const innerRadius = 100;
+    const outerRadius = Math.min(width, height) / 2 - 50;
+  
+    // Set up the SVG container
+    let svg = d3.select("#wave-svg");
+    if (svg.empty()) {
+      svg = d3.select("body").append("svg").attr("id", "wave-svg");
+    }
+  
+    svg
+      .attr("width", width)
+      .attr("height", height)
+      .selectAll("*").remove(); // Clear previous content if any
+  
+    const g = svg.append("g")
+      .attr("transform", `translate(${width / 2},${height / 2})`);
+  
+    // Define scales for angle (theta) and radius (r)
+    const theta = d3.scaleUtc()
+      .domain([Date.UTC(1982, 0, 1), Date.UTC(2024, 0, 1)])
+      .range([0, 2 * Math.PI]);
+  
+    const r = d3.scaleLinear()
+      .domain([d3.min(OSTData, d => d.temp), d3.max(OSTData, d => d.temp)])
+      .range([innerRadius, outerRadius]);
+  
+    // Define the color scale with blue for cooler temperatures and red for warmer
+    const radialColour = d3.scaleSequential(d3.interpolateRdBu)
+      .domain([d3.max(OSTData, d => d.temp), d3.min(OSTData, d => d.temp)]);
+  
+    // Function to draw and animate each year's data
+    function animateYearData(yearData, index) {
+      g.selectAll(".year-path-" + index)
+        .data(yearData)
+        .enter().append("path")
+        .attr("class", "year-path-" + index)
+        .attr("fill", d => radialColour(d.temp))  // Use a uniform color for each bar
+        .attr("stroke", "none") // Remove the white border by setting stroke to none
+        .attr("d", d => d3.arc()
+          .innerRadius(innerRadius)
+          .outerRadius(innerRadius) // Start with innerRadius
+          .startAngle(theta(d.date))
+          .endAngle(theta(d3.timeMonth.offset(d.date, 1)))()
+        )
+        .transition()
+        .delay(index * 100) // Delay each year's animation
+        .duration(2000)
+        .attrTween("d", function(d) {
+          const interpolateOuterRadius = d3.interpolate(innerRadius, r(d.temp));
+          return function(t) {
+            return d3.arc()
+              .innerRadius(innerRadius)
+              .outerRadius(interpolateOuterRadius(t))
+              .startAngle(theta(d.date))
+              .endAngle(theta(d3.timeMonth.offset(d.date, 1)))();
+          };
+        });
+    }
+  
+    // Group data by year and animate sequentially
+    const dataByYear = d3.groups(OSTData, d => d.date.getUTCFullYear());
+    dataByYear.forEach((yearGroup, index) => {
+      animateYearData(yearGroup[1], index);
+    });
+  
+    // Draw axes
+
+    /*const thetaAxis = g => g
+      .call(g => g.selectAll("g")
+        .data(theta.ticks())
+        .enter().append("g")
+        .call(g => g.append("path")
+          .attr("stroke", "#000")
+          .attr("stroke-opacity", 0.2)
+          .attr("d", d => `
+            M${d3.pointRadial(theta(d), innerRadius)}
+            L${d3.pointRadial(theta(d), outerRadius)}
+          `))
+        .call(g => g.append("text")
+          .attr("transform", d => `translate(${d3.pointRadial(theta(d), outerRadius + 10)})`)
+          .attr("dy", "0.35em")
+          .attr("text-anchor", d => theta(d) < Math.PI ? "start" : "end")
+          .text(d3.utcFormat("%Y-%m"))));
+  
+    g.append("g")
+      .call(thetaAxis);
+    
+    const rAxis = g => g
+      .call(g => g.selectAll("g")
+        .data(r.ticks())
+        .enter().append("g")
+        .attr("fill", "none")
+        .call(g => g.append("circle")
+          .attr("stroke", "#000")
+          .attr("stroke-opacity", 0.2)
+          .attr("r", r))
+        .call(g => g.append("text")
+          .attr("x", -6)
+          .attr("y", d => -r(d))
+          .attr("dy", "0.35em")
+          .text(d => `${d}°C`)));
+  
+    g.append("g")
+      .call(rAxis);
+      */
+  }
 
 app();
