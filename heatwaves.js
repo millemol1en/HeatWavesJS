@@ -171,17 +171,17 @@ function drawSequentialAnimatedCircularVisualization() {
         .data(yearData)
         .enter().append("path")
         .attr("class", "year-path-" + index)
-        .attr("fill", d => radialColour(d.temp))  // Use a uniform color for each bar
-        .attr("stroke", "none") // Remove the white border by setting stroke to none
-        .attr("d", d => d3.arc()
+        .attr("fill", d => radialColour(d.temp))  // Add colour to bars!
+        /* .attr("d", d => d3.arc()
           .innerRadius(innerRadius)
           .outerRadius(innerRadius) // Start with innerRadius
           .startAngle(theta(d.date))
           .endAngle(theta(d3.timeMonth.offset(d.date, 1)))()
-        )
+        )*/
         .transition()
-        .delay(index * 160) // Delay each year's animation
+        .delay(index * 160) // Year's animation which is delayed.
         .duration(2000)
+        //DRAWS
         .attrTween("d", function(d) {
           const interpolateOuterRadius = d3.interpolate(innerRadius, r(d.temp));
           return function(t) {
