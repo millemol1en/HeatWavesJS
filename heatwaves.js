@@ -17,105 +17,104 @@ function loadData() {
 
 function app() {
     loadData().then(() => {
-        
-        drawChart();
+        drawLineGraph();
         drawSequentialAnimatedCircularVisualization()
     });
 }
 
-function drawChart() {
+function drawLineGraph() {
     console.log("Ocean Temp Data: ", OSTData);
 
-        const svg = d3.select("#wave-svg");
-        const container = svg.node().parentNode;
-        const width = svg.node().getBoundingClientRect().width;
-        const height = svg.node().getBoundingClientRect().height;
+    const svg = d3.select("#wave-svg");
+    const container = svg.node().parentNode;
+    const width = svg.node().getBoundingClientRect().width;
+    const height = svg.node().getBoundingClientRect().height;
 
-        const margin = { top: 20, right: 50, bottom: 30, left: 50 };
-        const innerWidth = width - margin.left - margin.right;
-        const innerHeight = height - margin.top - margin.bottom;
+    const margin = { top: 20, right: 50, bottom: 30, left: 50 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
 
-        svg
-            .attr("width", width)
-            .attr("height", height)
-            .attr("viewBox", `0 0 ${width} ${height}`);
+    svg
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", `0 0 ${width} ${height}`);
 
-        const xScale = d3.scaleTime()
-            .domain(d3.extent(OSTData, d => d.date))
-            .range([0, innerWidth]);
+    const xScale = d3.scaleTime()
+        .domain(d3.extent(OSTData, d => d.date))
+        .range([0, innerWidth]);
 
-        const yScale = d3.scaleLinear()
-            .domain([d3.min(OSTData, d => d.temp), d3.max(OSTData, d => d.temp)])
-            .range([innerHeight, 0]);
+    const yScale = d3.scaleLinear()
+        .domain([d3.min(OSTData, d => d.temp), d3.max(OSTData, d => d.temp)])
+        .range([innerHeight, 0]);
 
-        const colorScale = d3.scaleSequential(d3.interpolateRdBu)
-            .domain([d3.max(OSTData, d => d.temp), d3.min(OSTData, d => d.temp)]);
+    const colorScale = d3.scaleSequential(d3.interpolateRdBu)
+        .domain([d3.max(OSTData, d => d.temp), d3.min(OSTData, d => d.temp)]);
 
-        const lineGenerator = d3.line()
-            .x(d => xScale(d.date))
-            .y(d => yScale(d.temp));
+    const lineGenerator = d3.line()
+        .x(d => xScale(d.date))
+        .y(d => yScale(d.temp));
 
-        const g = svg.append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
+    const g = svg.append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
 
-        // Define the gradient
-        const gradient = svg.append("defs")
-            .append("linearGradient")
-            .attr("id", "temperature-gradient")
-            .attr("x1", "0%")
-            .attr("y1", "0%")
-            .attr("x2", "100%")
-            .attr("y2", "0%");
+    // Define the gradient
+    const gradient = svg.append("defs")
+        .append("linearGradient")
+        .attr("id", "temperature-gradient")
+        .attr("x1", "0%")
+        .attr("y1", "0%")
+        .attr("x2", "100%")
+        .attr("y2", "0%");
 
-        // Add gradient stops based on the temperature data
-        OSTData.forEach((d, i) => {
-            gradient.append("stop")
-                .attr("offset", `${(i / (OSTData.length - 1)) * 100}%`)
-                .attr("stop-color", colorScale(d.temp));
-        });
+    // Add gradient stops based on the temperature data
+    OSTData.forEach((d, i) => {
+        gradient.append("stop")
+            .attr("offset", `${(i / (OSTData.length - 1)) * 100}%`)
+            .attr("stop-color", colorScale(d.temp));
+    });
 
-        g.append("path")
-            .datum(OSTData)
-            .attr("fill", "none")
-            .attr("stroke", "url(#temperature-gradient)")
-            .attr("stroke-width", 2)
-            .attr("d", lineGenerator);
+    g.append("path")
+        .datum(OSTData)
+        .attr("fill", "none")
+        .attr("stroke", "url(#temperature-gradient)")
+        .attr("stroke-width", 2)
+        .attr("d", lineGenerator);
 
-        const path = g.select("path");
+    const path = g.select("path");
 
-        const totalLength = path.node().getTotalLength();
+    const totalLength = path.node().getTotalLength();
 
-        path
-            .attr("stroke-dasharray", `${totalLength} ${totalLength}`)
-            .attr("stroke-dashoffset", totalLength)
-            .transition()
-            .duration(8000)
-            .ease(d3.easeLinear)
-            .attr("stroke-dashoffset", 0);
+    path
+        .attr("stroke-dasharray", `${totalLength} ${totalLength}`)
+        .attr("stroke-dashoffset", totalLength)
+        .transition()
+        .duration(8000)
+        .ease(d3.easeLinear)
+        .attr("stroke-dashoffset", 0);
 
-        // path
-        //     .on("mouseover", function(event, d) {
-        //         d3.select(this).attr("r", 6).attr("fill", "orange");
-        //         showInfo(d);
-        //     })
-        //     .on("mouseout", function() {
-        //         d3.select(this).attr("r", 3).attr("fill", "red");
-        //         hideInfo();
-        //     });
+    // path
+    //     .on("mouseover", function(event, d) {
+    //         d3.select(this).attr("r", 6).attr("fill", "orange");
+    //         showInfo(d);
+    //     })
+    //     .on("mouseout", function() {
+    //         d3.select(this).attr("r", 3).attr("fill", "red");
+    //         hideInfo();
+    //     });
 
-        const yearLabel = d3.select("#year-label");
+    const yearLabel = d3.select("#year-label");
 
-        const numDataPoints = OSTData[OSTData.length - 1].date.getFullYear() - OSTData[0].date.getFullYear();
-        console.log(numDataPoints);
-        let currentYear  = 1982;
+    const numDataPoints = OSTData[OSTData.length - 1].date.getFullYear() - OSTData[0].date.getFullYear();
+    console.log(numDataPoints);
+    let currentYear  = 1982;
 
-        d3.interval(() => {
-            if (currentYear <= 2024) {
-                yearLabel.text(currentYear);
+    d3.interval(() => {
+        if (currentYear <= 2024) {
+            yearLabel.text(currentYear);
 
-                currentYear++;
-            }
-        }, 8000 / numDataPoints);
+            currentYear++;
+        }
+    }, 8000 / numDataPoints);
 }
 
 function drawSequentialAnimatedCircularVisualization() {
@@ -143,7 +142,7 @@ function drawSequentialAnimatedCircularVisualization() {
     const theta = d3.scaleUtc()
       .domain([Date.UTC(1982, 0, 1), Date.UTC(2024, 0, 1)])
       .range([0, 2 * Math.PI]);
-//so, scaling
+
     const r = d3.scaleLinear()
       .domain([d3.min(OSTData, d => d.temp), d3.max(OSTData, d => d.temp)])
       .range([innerRadius, outerRadius]);
@@ -171,17 +170,17 @@ function drawSequentialAnimatedCircularVisualization() {
         .data(yearData)
         .enter().append("path")
         .attr("class", "year-path-" + index)
-        .attr("fill", d => radialColour(d.temp))  // Add colour to bars!
-        /* .attr("d", d => d3.arc()
+        .attr("fill", d => radialColour(d.temp))  // Use a uniform color for each bar
+        .attr("stroke", "none") // Remove the white border by setting stroke to none
+        .attr("d", d => d3.arc()
           .innerRadius(innerRadius)
           .outerRadius(innerRadius) // Start with innerRadius
           .startAngle(theta(d.date))
           .endAngle(theta(d3.timeMonth.offset(d.date, 1)))()
-        )*/
+        )
         .transition()
-        .delay(index * 160) // Year's animation which is delayed.
+        .delay(index * 160) // Delay each year's animation
         .duration(2000)
-        //DRAWS
         .attrTween("d", function(d) {
           const interpolateOuterRadius = d3.interpolate(innerRadius, r(d.temp));
           return function(t) {
@@ -198,8 +197,7 @@ function drawSequentialAnimatedCircularVisualization() {
     const dataByYear = d3.groups(OSTData, d => d.date.getUTCFullYear());
     dataByYear.forEach((yearGroup, index) => {
       animateYearData(yearGroup[1], index);
-    });
-  
-  }
+    });  
+}
 
 app();
