@@ -143,7 +143,7 @@ function drawSequentialAnimatedCircularVisualization() {
     const theta = d3.scaleUtc()
       .domain([Date.UTC(1982, 0, 1), Date.UTC(2024, 0, 1)])
       .range([0, 2 * Math.PI]);
-
+//so, scaling
     const r = d3.scaleLinear()
       .domain([d3.min(OSTData, d => d.temp), d3.max(OSTData, d => d.temp)])
       .range([innerRadius, outerRadius]);
