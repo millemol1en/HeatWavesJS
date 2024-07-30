@@ -3,7 +3,7 @@ html, body {margin: 0; height: 100%; overflow: hidden; background-color: #f8163c
 #title {
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
     color: #f9f9f9;
-    font-size: 24vh;
+    font-size: 14vh;
 }
 
 #main-container {
@@ -20,16 +20,14 @@ html, body {margin: 0; height: 100%; overflow: hidden; background-color: #f8163c
     padding-top: 20px;
 }
 
-#molecule-container {
-    padding-bottom: 20px;
-}
 
 .component-container {
     height: 100%;
     width: 100%;  /* Adjust as needed for your layout */
     max-width: 800px;  /* Optional: to limit the maximum width */
     margin: 20px 0;  /* Space between each graph */
-    border: 1px solid #ccc;  /* Optional: for a border around each graph */
+    /*border: 1px solid #ccc;  /* Optional: for a border around each graph */
     background-color: transparent;  /* Optional: background color for each graph */
     box-shadow: 0 2px 4px #f9f9f9;
+
 }
