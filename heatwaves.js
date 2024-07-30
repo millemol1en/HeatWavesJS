@@ -120,7 +120,7 @@ function drawSequentialAnimatedCircularVisualization() {
     const outerRadius = Math.min(width, height) / 2 - 50;
   
     // Set up the SVG container
-    let svg = d3.select("#wave-svg");
+    let svg = d3.select("#circle-svg");
     if (svg.empty()) {
       svg = d3.select("body").append("svg").attr("id", "wave-svg");
     }
