@@ -1,7 +1,12 @@
 let OSTData = [];
-let maxTemp = 21.5;
-let minTemp = 19.5;
+let maxTemp;
+let minTemp;
 
+//////////////////////////
+//                      //
+//      LOAD DATA       //
+//                      //
+//////////////////////////
 function loadData() {
     return Promise.all([
         // [0] Loading Monthly Ocean Surface Temperature JSON data:
@@ -9,24 +14,62 @@ function loadData() {
             // OSTData = d[0].data;
             OSTData = d[0].data.map(item => ({
                 date: new Date(item[0].replace(/,/g, '/')),
-                temp: item[1]
+                temp: parseFloat(item[1])
             }));
+            maxTemp = d3.max(OSTData, d => d.temp);
+            minTemp = d3.min(OSTData, d => d.temp);
         })
     ])
 };
 
+// [1] Run the application:
 function app() {
     loadData().then(() => {
+        //generateBackground();
         drawLineGraph();
-        drawSequentialAnimatedCircularVisualization()
+        drawSequentialAnimatedCircularVisualization();
     });
 }
 
-function drawLineGraph() {
-    console.log("Ocean Temp Data: ", OSTData);
+//////////////////////////
+//                      //
+//    GLOBAL CONSTANTS  //
+//                      //
+//////////////////////////
+// function generateBackground() {
+//     const svg = d3.select("#art-svg").append("svg")
+//         .attr("width", "100%")
+//         .attr("height", "100%");
 
-    const svg = d3.select("#wave-svg");
-    const container = svg.node().parentNode;
+//     const colorScale = d3.scaleLinear()
+//         .domain([minTemp, maxTemp])
+//         .range(["#ADD8E6", "#FF4500"]); // light blue to dark red
+
+//     const width = window.innerWidth;
+//     const height = window.innerHeight;
+
+//     // Number of rectangles to create
+//     const numRects = OSTData.length;
+
+//     // Rectangle width
+//     const rectWidth = width / numRects;
+
+//     // Append rectangles
+//     svg.selectAll("rect")
+//         .data(OSTData)
+//         .enter()
+//         .append("rect")
+//         .attr("x", (d, i) => i * rectWidth)
+//         .attr("y", 0)
+//         .attr("width", rectWidth)
+//         .attr("height", height)
+//         .attr("fill", d => colorScale(d.temp));
+// }
+
+
+// [2] Draw the generative line graph:
+function drawLineGraph() {
+    const svg = d3.select("#line-graph-svg");
     const width = svg.node().getBoundingClientRect().width;
     const height = svg.node().getBoundingClientRect().height;
 
@@ -57,7 +100,11 @@ function drawLineGraph() {
     const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Define the gradient
+    const radialColour = d3
+        .scaleSequential(d3.interpolateRdBu)
+        .domain([d3.max(OSTData, d => d.temp), d3.min(OSTData, d => d.temp)]);
+
+    // [2.1] Define the gradient used to display the temperature interpolation:
     const gradient = svg.append("defs")
         .append("linearGradient")
         .attr("id", "temperature-gradient")
@@ -92,15 +139,15 @@ function drawLineGraph() {
         .ease(d3.easeLinear)
         .attr("stroke-dashoffset", 0);
 
-    // path
-    //     .on("mouseover", function(event, d) {
-    //         d3.select(this).attr("r", 6).attr("fill", "orange");
-    //         showInfo(d);
-    //     })
-    //     .on("mouseout", function() {
-    //         d3.select(this).attr("r", 3).attr("fill", "red");
-    //         hideInfo();
-    //     });
+    let zoom = d3.zoom().scaleExtent([0.9, 3]).on('zoom', (event) => {
+        d3.select('path')
+            .attr('transform', event.transform);
+
+        d3.select('g g')
+            .attr('transform', event.transform);
+    });
+
+    d3.select('svg').call(zoom);
 
     const yearLabel = d3.select("#year-label");
 
@@ -115,82 +162,88 @@ function drawLineGraph() {
             currentYear++;
         }
     }, 8000 / numDataPoints);
+
+
+    // [] Append the Y-axis 
+    g.append("g")
+        .attr("class", "y axis")
+        .call(d3.axisLeft(yScale).tickValues([minTemp, 0, maxTemp]));
 }
 
+// [3] Draw the circular bar graph:
 function drawSequentialAnimatedCircularVisualization() {
     // Define the dimensions and margins for the SVG container
     const width = 800;
     const height = 800;
     const innerRadius = 100;
     const outerRadius = Math.min(width, height) / 2 - 50;
-
+    
     // Set up SVG container
     let svg = d3.select("#circle-svg");
     if (svg.empty()) {
-      svg = d3.select("body").append("svg").attr("id", "circle-svg");
+        svg = d3.select("body").append("svg").attr("id", "circle-svg");
     }
 
     svg
-      .attr("width", width)
-      .attr("height", height)
-      .selectAll("*").remove(); 
+        .attr("width", width)
+        .attr("height", height)
+        .selectAll("*").remove(); 
 
     const g = svg.append("g")
-      .attr("transform", `translate(${width / 2},${height / 2})`);
+        .attr("transform", `translate(${width / 2},${height / 2})`);
 
-    // Define scales for angle (theta) and radius (r)
-    const theta = d3.scaleUtc()
-      .domain([Date.UTC(1982, 0, 1), Date.UTC(2024, 0, 1)])
-      .range([0, 2 * Math.PI]);
+    const theta = d3
+        .scaleUtc()
+        .domain([Date.UTC(1982, 0, 1), Date.UTC(2024, 0, 1)])
+        .range([0, 2 * Math.PI]);
 
     const r = d3.scaleLinear()
-      .domain([d3.min(OSTData, d => d.temp), d3.max(OSTData, d => d.temp)])
-      .range([innerRadius, outerRadius]);
+        .domain([d3.min(OSTData, d => d.temp), d3.max(OSTData, d => d.temp)])
+        .range([innerRadius, outerRadius]);
 
-    // Define the color scale with blue for cooler temperatures and red for warmer
     const radialColour = d3.scaleSequential(d3.interpolateRdBu)
-      .domain([d3.max(OSTData, d => d.temp), d3.min(OSTData, d => d.temp)]);
+        .domain([d3.max(OSTData, d => d.temp), d3.min(OSTData, d => d.temp)]);
 
     // Add a text element for displaying the current year
     const yearText = g.append("text")
-      .attr("text-anchor", "middle")
-      .attr("dy", "0.35em")
-      .attr("font-size", "1.5em")
-      .attr("fill", "#ffffff");
+        .attr("text-anchor", "middle")
+        .attr("dy", "0.35em")
+        .attr("font-size", "1.5em")
+        .attr("fill", "#ffffff");
 
     // Function to draw and animate each year's data
     function animateYearData(yearData, index) {
-      // Update the year display
-      const year = yearData[0].date.getUTCFullYear();
-      setTimeout(() => {
-        yearText.text(year);
-      }, index * 165); // Update year text with the same delay
+        // Update the year display
+        const year = yearData[0].date.getUTCFullYear();
+        setTimeout(() => {
+          yearText.text(year);
+        }, index * 165); // Update year text with the same delay
 
-      g.selectAll(".year-path-" + index)
-        .data(yearData)
-        .enter().append("path")
-        .attr("class", "year-path-" + index)
-        .attr("fill", d => radialColour(d.temp))  // Use a uniform color for each bar
-        .attr("stroke", "none") // Remove the white border by setting stroke to none
-        .attr("d", d => d3.arc()
-          .innerRadius(innerRadius)
-          .outerRadius(innerRadius) // Start with innerRadius
-          .startAngle(theta(d.date))
-          .endAngle(theta(d3.timeMonth.offset(d.date, 1)))()
-        )
-        .transition()
-        .delay(index * 160) // Delay each year's animation
-        .duration(2000)
-        .attrTween("d", function(d) {
-          const interpolateOuterRadius = d3.interpolate(innerRadius, r(d.temp));
-          return function(t) {
-            return d3.arc()
-              .innerRadius(innerRadius)
-              .outerRadius(interpolateOuterRadius(t))
-              .startAngle(theta(d.date))
-              .endAngle(theta(d3.timeMonth.offset(d.date, 1)))();
-          };
-        });
+        g.selectAll(".year-path-" + index)
+          .data(yearData)
+          .enter().append("path")
+          .attr("class", "year-path-" + index)
+          .attr("fill", d => radialColour(d.temp))  // Use a uniform color for each bar
+          .attr("stroke", "none") // Remove the white border by setting stroke to none
+          .attr("d", d => d3.arc()
+            .innerRadius(innerRadius)
+            .outerRadius(innerRadius) // Start with innerRadius
+            .startAngle(theta(d.date))
+            .endAngle(theta(d3.timeMonth.offset(d.date, 1)))()
+          )
+          .transition()
+          .delay(index * 160) // Delay each year's animation
+          .duration(2000)
+          .attrTween("d", function(d) {
+              const interpolateOuterRadius = d3.interpolate(innerRadius, r(d.temp));
+              return function(t) {
+                  return d3.arc()
+                    .innerRadius(innerRadius)
+                    .outerRadius(interpolateOuterRadius(t))
+                    .startAngle(theta(d.date))
+                    .endAngle(theta(d3.timeMonth.offset(d.date, 1)))();
+              };
+          });
     }
 
     // Group data by year and animate sequentially
@@ -199,5 +252,9 @@ function drawSequentialAnimatedCircularVisualization() {
       animateYearData(yearGroup[1], index);
     });  
 }
+
+
+
+
 
 app();

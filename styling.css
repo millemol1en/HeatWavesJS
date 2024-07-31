@@ -1,9 +1,11 @@
+
+
 html, body {
     margin: 0; 
     height: 100%; 
     overflow: visible; 
     background-image: url('data/Ocean.jpg'); 
-    }
+}
 /*old, white colour: f9f9f9*/
 #title {
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
@@ -40,30 +42,19 @@ html, body {
     overflow-y: auto;  /* Allows scrolling if the content exceeds viewport height */
 }
 
-
 #wave-svg-container {
     padding-top: 20px;
 }
 
-
 .component-container {
     height: 100%;
     width: 100%;  /* Adjust as needed for your layout */
-    max-width: 800px;  /* Optional: to limit the maximum width */
-    margin: 20px 0;  /* Space between each graph */
-    /*border: 1px solid #ccc;  /* Optional: for a border around each graph */
-    background-color: transparent;  /* Optional: background color for each graph */
-    box-shadow: 0 2px 4px #f9f9f9;
-    
+    max-width: 800px;  /* Optional: to limit the maximum width */    
     color: #fff;
     margin: 40px auto;
     background-color: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.1);
-    width: 100%;
     border-radius: 15px;
     padding: 32px;
     backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px); 
-
-
 }
