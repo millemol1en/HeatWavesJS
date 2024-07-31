@@ -58,3 +58,23 @@ html, body {
     padding: 32px;
     backdrop-filter: blur(20px);
 }
+
+.link line {
+    stroke: #696969;
+  }
+  
+  .link line.separator {
+    stroke: #fff;
+    stroke-opacity: 1.0;
+    stroke-width: 2px;
+  }
+  
+  .node circle {
+    stroke: #000;
+    stroke-width: 1.5px;
+  }
+  
+  .node text {
+    font: 10px sans-serif;
+    pointer-events: none;
+  }

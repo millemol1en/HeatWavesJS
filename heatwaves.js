@@ -2,6 +2,9 @@ let OSTData = [];
 let maxTemp;
 let minTemp;
 
+const width = 800;
+const height = 800;
+
 //////////////////////////
 //                      //
 //      LOAD DATA       //
@@ -19,162 +22,120 @@ function loadData() {
             maxTemp = d3.max(OSTData, d => d.temp);
             minTemp = d3.min(OSTData, d => d.temp);
         })
+
     ])
 };
 
 // [1] Run the application:
 function app() {
     loadData().then(() => {
-        //generateBackground();
-        drawLineGraph();
-        drawSequentialAnimatedCircularVisualization();
+        drawCircularBarChart();
+        drawMolecule();
     });
 }
 
 //////////////////////////
 //                      //
-//    GLOBAL CONSTANTS  //
+//       MOLECULES      //
 //                      //
 //////////////////////////
-// function generateBackground() {
-//     const svg = d3.select("#art-svg").append("svg")
-//         .attr("width", "100%")
-//         .attr("height", "100%");
+function drawMolecule() {
+    let color = d3.scaleOrdinal(d3.schemeCategory10);
 
-//     const colorScale = d3.scaleLinear()
-//         .domain([minTemp, maxTemp])
-//         .range(["#ADD8E6", "#FF4500"]); // light blue to dark red
+    let  radius = d3.scaleSqrt()
+        .range([0, 6]);
 
-//     const width = window.innerWidth;
-//     const height = window.innerHeight;
-
-//     // Number of rectangles to create
-//     const numRects = OSTData.length;
-
-//     // Rectangle width
-//     const rectWidth = width / numRects;
-
-//     // Append rectangles
-//     svg.selectAll("rect")
-//         .data(OSTData)
-//         .enter()
-//         .append("rect")
-//         .attr("x", (d, i) => i * rectWidth)
-//         .attr("y", 0)
-//         .attr("width", rectWidth)
-//         .attr("height", height)
-//         .attr("fill", d => colorScale(d.temp));
-// }
-
-
-// [2] Draw the generative line graph:
-function drawLineGraph() {
-    const svg = d3.select("#line-graph-svg");
-    const width = svg.node().getBoundingClientRect().width;
-    const height = svg.node().getBoundingClientRect().height;
-
-    const margin = { top: 20, right: 50, bottom: 30, left: 50 };
-    const innerWidth = width - margin.left - margin.right;
-    const innerHeight = height - margin.top - margin.bottom;
-
-    svg
+    let svg = d3.select("#molecule-svg")
         .attr("width", width)
-        .attr("height", height)
-        .attr("viewBox", `0 0 ${width} ${height}`);
+        .attr("height", height);
 
-    const xScale = d3.scaleTime()
-        .domain(d3.extent(OSTData, d => d.date))
-        .range([0, innerWidth]);
+    let simulation = d3.forceSimulation()
+        .force("charge", d3.forceManyBody().strength(-800))
+        .force("link", d3.forceLink().distance(d => radius(d.source.size) + radius(d.target.size) + 20))
+        .force("center", d3.forceCenter(width / 2, height / 2));
 
-    const yScale = d3.scaleLinear()
-        .domain([d3.min(OSTData, d => d.temp), d3.max(OSTData, d => d.temp)])
-        .range([innerHeight, 0]);
+    d3.json("./data/molecules.json").then((d) => {
+      console.log(d);
 
-    const colorScale = d3.scaleSequential(d3.interpolateRdBu)
-        .domain([d3.max(OSTData, d => d.temp), d3.min(OSTData, d => d.temp)]);
+      var graph = d.CO2[0];
 
-    const lineGenerator = d3.line()
-        .x(d => xScale(d.date))
-        .y(d => yScale(d.temp));
-
-    const g = svg.append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const radialColour = d3
-        .scaleSequential(d3.interpolateRdBu)
-        .domain([d3.max(OSTData, d => d.temp), d3.min(OSTData, d => d.temp)]);
-
-    // [2.1] Define the gradient used to display the temperature interpolation:
-    const gradient = svg.append("defs")
-        .append("linearGradient")
-        .attr("id", "temperature-gradient")
-        .attr("x1", "0%")
-        .attr("y1", "0%")
-        .attr("x2", "100%")
-        .attr("y2", "0%");
-
-    // Add gradient stops based on the temperature data
-    OSTData.forEach((d, i) => {
-        gradient.append("stop")
-            .attr("offset", `${(i / (OSTData.length - 1)) * 100}%`)
-            .attr("stop-color", colorScale(d.temp));
+      simulation
+          .nodes(graph.atoms)
+          .on("tick", ticked);
+  
+      simulation.force("link")
+          .links(graph.links);
+  
+      var link = svg.selectAll(".link")
+          .data(graph.links)
+          .enter().append("g")
+          .attr("class", "link");
+  
+      // TODO: Fix this so that it draws properly
+      link.append("line")
+          .style("stroke-width", function(d) { return (d.bond * 2 - 1) * 2 + "px"; });
+  
+      link.filter(function(d) { return d.bond > 1; }).append("line")
+          .attr("class", "separator");
+  
+      var node = svg.selectAll(".node")
+          .data(graph.atoms)
+          .enter().append("g")
+          .attr("class", "node")
+          .call(d3.drag()
+              .on("start", dragstarted)
+              .on("drag", dragged)
+              .on("end", dragended));
+  
+      node.append("circle")
+          .attr("r", function(d) { return radius(d.size); })
+          .style("fill", function(d) { return color(d.atom); });
+  
+      node.append("text")
+          .attr("dy", ".35em")
+          .attr("text-anchor", "middle")
+          .text(function(d) { return d.atom; });
+  
+      function ticked() {
+          link.selectAll("line")
+              .attr("x1", function(d) { return d.source.x; })
+              .attr("y1", function(d) { return d.source.y; })
+              .attr("x2", function(d) { return d.target.x; })
+              .attr("y2", function(d) { return d.target.y; });
+  
+          node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+      }
+  
+      function dragstarted(event, d) {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+      }
+  
+      function dragged(event, d) {
+          d.fx = event.x;
+          d.fy = event.y;
+      }
+  
+      function dragended(event, d) {
+          if (!event.active) simulation.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+      }
+    }).catch(function(error) {
+        console.error('Error loading or parsing data:', error);
     });
 
-    g.append("path")
-        .datum(OSTData)
-        .attr("fill", "none")
-        .attr("stroke", "url(#temperature-gradient)")
-        .attr("stroke-width", 2)
-        .attr("d", lineGenerator);
-
-    const path = g.select("path");
-
-    const totalLength = path.node().getTotalLength();
-
-    path
-        .attr("stroke-dasharray", `${totalLength} ${totalLength}`)
-        .attr("stroke-dashoffset", totalLength)
-        .transition()
-        .duration(8000)
-        .ease(d3.easeLinear)
-        .attr("stroke-dashoffset", 0);
-
-    let zoom = d3.zoom().scaleExtent([0.9, 3]).on('zoom', (event) => {
-        d3.select('path')
-            .attr('transform', event.transform);
-
-        d3.select('g g')
-            .attr('transform', event.transform);
-    });
-
-    d3.select('svg').call(zoom);
-
-    const yearLabel = d3.select("#year-label");
-
-    const numDataPoints = OSTData[OSTData.length - 1].date.getFullYear() - OSTData[0].date.getFullYear();
-    console.log(numDataPoints);
-    let currentYear  = 1982;
-
-    d3.interval(() => {
-        if (currentYear <= 2024) {
-            yearLabel.text(currentYear);
-
-            currentYear++;
-        }
-    }, 8000 / numDataPoints);
-
-
-    // [] Append the Y-axis 
-    g.append("g")
-        .attr("class", "y axis")
-        .call(d3.axisLeft(yScale).tickValues([minTemp, 0, maxTemp]));
 }
 
-// [3] Draw the circular bar graph:
-function drawSequentialAnimatedCircularVisualization() {
+
+////////////////////////////
+//                        //
+//    CIRCULAR BAR CHART  //
+//                        //
+////////////////////////////
+function drawCircularBarChart() {
     // Define the dimensions and margins for the SVG container
-    const width = 800;
-    const height = 800;
     const innerRadius = 100;
     const outerRadius = Math.min(width, height) / 2 - 50;
     
