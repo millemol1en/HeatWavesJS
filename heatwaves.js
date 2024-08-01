@@ -39,6 +39,11 @@ function app() {
 //       MOLECULES      //
 //                      //
 //////////////////////////
+function createMolecule() {
+
+}
+
+
 function drawMolecule() {
     let color = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -55,8 +60,6 @@ function drawMolecule() {
         .force("center", d3.forceCenter(width / 2, height / 2));
 
     d3.json("./data/molecules.json").then((d) => {
-      console.log(d);
-
       var graph = d.CO2[0];
 
       simulation
