@@ -61,20 +61,20 @@ html, body {
 
 .link line {
     stroke: #696969;
-  }
+}
   
-  .link line.separator {
+.link line.separator {
     stroke: #fff;
     stroke-opacity: 1.0;
     stroke-width: 2px;
-  }
+}
   
-  .node circle {
+.node circle {
     stroke: #000;
     stroke-width: 1.5px;
-  }
+}
   
-  .node text {
+.node text {
     font: 10px sans-serif;
     pointer-events: none;
-  }
+}
