@@ -78,3 +78,13 @@ html, body {
     font: 10px sans-serif;
     pointer-events: none;
 }
+
+.line {
+    stroke: black;
+    stroke-width: 1.5px;
+}
+
+.highlighted {
+    stroke: red;
+    stroke-width: 3px;
+}

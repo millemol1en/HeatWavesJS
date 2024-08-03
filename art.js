@@ -24,7 +24,7 @@ function app() {
         const marginRight = 10;
         const marginBottom = 20;
         const marginLeft = 10;
-        const overlap = 16;
+        const overlap = 10;
         const yearPadding = 50; 
         const amplificationFactor = 5;
 
@@ -102,7 +102,7 @@ function app() {
             .style("display", "none");
         
         tooltip.append("path")
-            .attr("fill", "brown")
+            .attr("fill", "none")
             .attr("stroke", "black");
         
         const toolTipText = tooltip.append("text");
@@ -158,11 +158,19 @@ function app() {
         .selectAll("path")
         .data(d3.groups(amplifiedData, d => d.year))
         .join("path")
+        .attr("stroke-width", 1.5) // Set the desired thickness
         .attr("transform", d => `translate(0,${z(d[0])})`)
         .attr("d", d => line(d[1]))
-        .on("mousemove", function(event, d) { pointermoved(event, d); })  // Pass the whole group data 'd'
-        .on("mouseleave", pointerleft);
-
+        .on("mouseenter", function(event, d) { 
+            d3.select(this).classed("highlighted", true);  // Add highlight class
+        })
+        .on("mouseleave", function(event, d) { 
+            d3.select(this).classed("highlighted", false);  // Remove highlight class
+            pointerleft();  // Hide the tooltip when leaving the line
+        })
+        .on("mousemove", function(event, d) { 
+            pointermoved(event, d);  // Update the tooltip
+        });
 
 
     });
