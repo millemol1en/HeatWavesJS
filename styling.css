@@ -4,7 +4,7 @@ html, body {
     margin: 0; 
     height: 100%; 
     overflow: visible; 
-    background-image: url('data/Ocean.jpg'); 
+    /*background-image: url('data/Ocean.jpg'); */
 }
 /*old, white colour: f9f9f9*/
 #title {

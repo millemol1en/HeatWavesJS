@@ -20,7 +20,7 @@ function app() {
         // 'width' and 'height' needs to be dynamic
         const width = 1200;
         const height = 760;
-        const marginTop = 60;
+        const marginTop = 350;
         const marginRight = 10;
         const marginBottom = 20;
         const marginLeft = 10;
@@ -29,9 +29,11 @@ function app() {
         const amplificationFactor = 5;
 
         const meanTemp = d3.mean(OSTData, d => d.temp);
+        const peak = 0; 
 
         const getScalingFactor = (dayOfYear) => {
-            const radians = (2 * Math.PI * dayOfYear) / 365;  // Convert day of year to radians
+            //                             (dayOfYear * peak) if you want the spikey 'wave' effect!
+            const radians = (2 * Math.PI * (dayOfYear - peak)) / 365;  // Convert day of year to radians
             return 0.5 * (1 + Math.sin(radians - Math.PI / 2));  // Sinusoidal function, peaks at mid-year
         };
 
@@ -51,7 +53,7 @@ function app() {
 
         const z = d3.scaleBand()
             .domain([...new Set(OSTData.map(d => d.year))])
-            .range([marginTop, height - marginBottom - marginBottom])
+            .range([height - marginBottom - marginBottom, marginTop])
             .padding(0.1);
 
         // const yExtent = d3.extent(amplifiedData, d => d.amplifiedTemp);
@@ -60,12 +62,12 @@ function app() {
 
         const y = d3.scaleLinear()
             .domain(d3.extent(amplifiedData, d => d.amplifiedTemp))  // Adjust based on temperature values
-            .range([z.bandwidth(), 0]);
+            .range([0, z.bandwidth()]);
 
         const line = d3.line()
             .defined(d => !isNaN(d.amplifiedTemp))
             .x(d => x(d.dayOfYear))
-            .y(d => y(d.amplifiedTemp));   // Change this! * 20
+            .y(d => y(d.amplifiedTemp) * (-40));   // Change this! * 20
 
         const svg = d3.select('body')
             .append("svg")
@@ -74,6 +76,9 @@ function app() {
             .attr("viewBox", [0, 0, width, height])
             .attr("style", "max-width: 100%; height: auto;");
 
+            
+        
+
         svg.append("g")
             .attr("fill", "none")
             .attr("stroke", "black")
@@ -81,11 +86,104 @@ function app() {
             .data(d3.groups(amplifiedData, d => d.year))
             .join("path")
             .attr("transform", d => `translate(0,${z(d[0])})`)
-            .attr("d", d => {
-                return line(d[1]);
-            });
+            .attr("d", d => line(d[1]))
+            .on("mousemove", function(event, d) { pointermoved(event, d); })  // Pass the whole group data 'd'
+            .on("mouseleave", pointerleft);
+        
+
+                /********************************** 
+             * 
+             * HOVER EFFECT GOES HERE
+             * 
+            ***********************************/
+
+           
+        const tooltip = svg.append("g")
+            .style("display", "none");
+        
+        tooltip.append("path")
+            .attr("fill", "brown")
+            .attr("stroke", "black");
+        
+        const toolTipText = tooltip.append("text");
+            
+    function pointermoved(event, groupData) {
+        if (!groupData || !groupData[1]) {
+            console.warn("groupData or groupData[1] is undefined", groupData);
+            return;
+        }
+
+        const [mx] = d3.pointer(event);
+        const dayOfYear = x.invert(mx);
+        const dataForYear = groupData[1];  // Extract the actual data from groupData
+        const year = groupData[0];  // Extract the year
+
+        console.log("dataForYear:", dataForYear, "year:", year);
+
+        // Find the closest data point in the current year's data
+        const i = d3.bisector(d => d.dayOfYear).left(dataForYear, dayOfYear, 1);
+        const a = dataForYear[i - 1];
+        const b = dataForYear[i];
+
+        if (!a || !b) return;
+
+        const d = dayOfYear - a.dayOfYear > b.dayOfYear - dayOfYear ? b : a;
+
+        tooltip.style("display", null);
+        tooltip.attr("transform", `translate(${x(d.dayOfYear)},${z(year) + y(d.amplifiedTemp) * -40})`);
+
+        tooltip.selectAll("path")
+            .data([,])
+            .join("path")
+            .attr("d", `M-10,-10 H10 V10 H-10 Z`);
+
+        toolTipText
+            .selectAll("tspan")
+            .data([`Year: ${d.year}`, `Temp: ${d.amplifiedTemp.toFixed(2)}°C`])
+            .join("tspan")
+            .attr("x", 0)
+            .attr("y", (d, i) => `${i * 1.1}em`)
+            .attr("font-weight", (_, i) => i ? null : "bold")
+            .text(d => d);
+    }
+
+    function pointerleft() {
+        tooltip.style("display", "none");
+    }
+
+        // Update the event listeners
+    svg.append("g")
+        .attr("fill", "none")
+        .attr("stroke", "black")
+        .selectAll("path")
+        .data(d3.groups(amplifiedData, d => d.year))
+        .join("path")
+        .attr("transform", d => `translate(0,${z(d[0])})`)
+        .attr("d", d => line(d[1]))
+        .on("mousemove", function(event, d) { pointermoved(event, d); })  // Pass the whole group data 'd'
+        .on("mouseleave", pointerleft);
+
+
+
+    });
+
+        
+    }
+
+
+   
+
+        
+
+
+
+
+
+
+
 
         // Add X-axis
+        /* 
         svg.append("g")
             .attr("transform", `translate(0,${height - marginBottom})`)
             .call(d3.axisBottom(x)
@@ -95,8 +193,9 @@ function app() {
                     return d % 30 === 0 ? month : "";  // Show month name only at the start of each month
                 }))
             .call(g => g.select(".domain").remove());
-
+        
         // Y-Axis (Temperature) [TODO: Condense this down to make it more simple]
+        
         const yAxis = svg.append("g")
             .attr("class", "y axis")
             .call(d3.axisLeft(y).ticks(5));
@@ -108,7 +207,7 @@ function app() {
             .attr("dy", "-5.1em")
             .attr("text-anchor", "end")
             .text("Temperature (°C)");
-
+        
         // Z-axis (Years)
         svg.append("g")
             .selectAll("text")
@@ -119,8 +218,8 @@ function app() {
             .attr("dy", "0.35em")
             .attr("text-anchor", "start")
             .text(d => d);
-    });
-}
+        */
+  
 
 app();
 
