@@ -98,14 +98,21 @@ function app() {
             ***********************************/
 
            
-        const tooltip = svg.append("g")
-            .style("display", "none");
-        
-        tooltip.append("path")
-            .attr("fill", "none")
-            .attr("stroke", "black");
-        
-        const toolTipText = tooltip.append("text");
+    const tooltip = svg.append("g")
+        .style("display", "none")
+        .attr("pointer-events", "none"); // Avoid tooltip blocking mouse events
+
+    const tooltipBackground = tooltip.append("rect")
+        .attr("fill", "white")
+        .attr("stroke", "none")
+        .attr("rx", 4) // Rounded corners
+        .attr("ry", 9)
+        .attr("opacity", 0.8);
+    
+    const toolTipText = tooltip.append("text")
+        .attr("font-size", "12px")
+        .attr("font-family", "sans-serif")
+        .attr("dy", "1.2em");
             
     function pointermoved(event, groupData) {
         if (!groupData || !groupData[1]) {
@@ -132,19 +139,25 @@ function app() {
         tooltip.style("display", null);
         tooltip.attr("transform", `translate(${x(d.dayOfYear)},${z(year) + y(d.amplifiedTemp) * -40})`);
 
-        tooltip.selectAll("path")
-            .data([,])
-            .join("path")
-            .attr("d", `M-10,-10 H10 V10 H-10 Z`);
+
 
         toolTipText
             .selectAll("tspan")
             .data([`Year: ${d.year}`, `Temp: ${d.amplifiedTemp.toFixed(2)}°C`])
             .join("tspan")
-            .attr("x", 0)
-            .attr("y", (d, i) => `${i * 1.1}em`)
+            .attr("x", 10)  // Adjusted for padding inside the tooltip box
+            .attr("y", (d, i) => `${i * 2}em`)  // Adjusted line height for better readability
             .attr("font-weight", (_, i) => i ? null : "bold")
             .text(d => d);
+        
+
+        const bbox = toolTipText.node().getBBox();
+            
+        tooltipBackground
+            .attr("x", bbox.x - 5) // Adjust for padding inside the tooltip box
+            .attr("y", bbox.y - 5)
+            .attr("width", bbox.width + 10)
+            .attr("height", bbox.height + 10);
     }
 
     function pointerleft() {
@@ -171,6 +184,8 @@ function app() {
         .on("mousemove", function(event, d) { 
             pointermoved(event, d);  // Update the tooltip
         });
+
+    tooltip.raise();
 
 
     });

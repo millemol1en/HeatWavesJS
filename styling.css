@@ -88,3 +88,9 @@ html, body {
     stroke: red;
     stroke-width: 3px;
 }
+
+.tooltip {
+    font-size: 12px;
+    font-family: sans-serif;
+    pointer-events: none; /* Ensure the tooltip doesn't block interactions */
+}
