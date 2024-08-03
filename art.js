@@ -91,11 +91,11 @@ function app() {
             .on("mouseleave", pointerleft);
         
 
-                /********************************** 
-             * 
-             * HOVER EFFECT GOES HERE
-             * 
-            ***********************************/
+    /********************************** 
+     * 
+     * HOVER EFFECT GOES HERE
+     * 
+    ***********************************/
 
            
     const tooltip = svg.append("g")
