@@ -97,7 +97,30 @@ function app() {
      * 
     ***********************************/
 
-           
+
+    // ===
+    // HOVER LINE
+    // ===
+    
+    // Invisible lines for interaction
+    // Render the actual visible lines
+    svg.append("g")
+    .attr("fill", "none")
+    .attr("stroke", "black")
+    .attr("stroke-width", 1.5)
+    .selectAll("path")
+    .data(d3.groups(amplifiedData, d => d.year))
+    .join("path")
+    .attr("transform", d => `translate(0,${z(d[0])})`)
+    .attr("d", d => line(d[1]))
+    .attr("class", "visible-line");
+
+
+        
+
+        
+
+         
     const tooltip = svg.append("g")
         .style("display", "none")
         .attr("pointer-events", "none"); // Avoid tooltip blocking mouse events
@@ -146,7 +169,7 @@ function app() {
             .data([`Year: ${d.year}`, `Temp: ${d.amplifiedTemp.toFixed(2)}°C`])
             .join("tspan")
             .attr("x", 10)  // Adjusted for padding inside the tooltip box
-            .attr("y", (d, i) => `${i * 2}em`)  // Adjusted line height for better readability
+            .attr("y", (d, i) => `${i * 2.2}em`)  // Adjusted line height for better readability
             .attr("font-weight", (_, i) => i ? null : "bold")
             .text(d => d);
         
@@ -165,6 +188,7 @@ function app() {
     }
 
         // Update the event listeners
+    
     svg.append("g")
         .attr("fill", "none")
         .attr("stroke", "black")
@@ -184,6 +208,8 @@ function app() {
         .on("mousemove", function(event, d) { 
             pointermoved(event, d);  // Update the tooltip
         });
+    
+
 
     tooltip.raise();
 
