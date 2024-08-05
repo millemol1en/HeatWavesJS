@@ -4,17 +4,6 @@
 //  -> Put an indicator when hovering which states to the user that the colors are specific for that year
 //     indicating that it is intended to be an unobstructive way of showing the coolest and hottest temperatures
 
-
-
-/*
-    Discovered in 1967 by astrophysicist Jocelyn Bell Burnell, the neutron star known as CP 1919 was 
-
-    PSR B1919+21 
-
-    In 
-
-*/
-
 let rawData     = [];
 let cleanData   = [];
 
@@ -41,17 +30,17 @@ function loadData() {
         // [1] Calculate mean temperature
         const meanTemp = d3.mean(rawData, d => d.temp);
 
-        // [2] Define scaling factor function
+        // [2] Define scaling factor function - fix this 
         const getScalingFactor = (dayOfYear) => {
-            const radians = (2 * Math.PI * dayOfYear) / 365;        // Convert day of year to radians
-            return 0.5 * (1 + Math.sin(radians - Math.PI / 2));     // Sinusoidal function, peaks at mid-year
+            const radians = (2 * Math.PI * dayOfYear) / 365;      // [2.1] Convert day of year to radians
+            return 2 * (1 + Math.sin(radians - Math.PI / 2));     // [2.2] Sinusoidal function, peaks at mid-year
         };
 
         // [3] Generate amplified data
         cleanData = rawData.map(d => {
-            const scalingFactor = getScalingFactor(d.dayOfYear);
+            const scalingFactor = getScalingFactor(d.dayOfYear) * 20.0;
 
-            const ampTemp = (d.temp - meanTemp) * (1 + scalingFactor * 20.0) + meanTemp;
+            const ampTemp = (d.temp - meanTemp) * (1 + scalingFactor) + meanTemp;
 
             const month = getMonth(d.dayOfYear);
             console.log(`Year: ${d.year}, Month: ${month}, ampTemp: ${ampTemp}`);
