@@ -1,283 +1,176 @@
-let OSTData = [];
+let rawData     = [];
+let cleanData   = [];
 
 function loadData() {
     return d3.json("./data/Daily_Ocean_Surface_Temp.json").then((data) => {
-        OSTData = data.flatMap((yearlyData, yearIndex) => 
+        // [0] Map the data and retrieve only the necessary variables
+        rawData = data.flatMap((yearlyData, yearIndex) => 
             yearlyData.data
                 .map((temp, dayIndex) => ({
-                    date: new Date(1982 + yearIndex, 0, 1 + dayIndex),  // Start from 1982 and add days
                     temp: parseFloat(temp),
                     year: 1982 + yearIndex,
                     dayOfYear: dayIndex
                 }))
-                .filter(d => !isNaN(d.temp))  // Filter out invalid values
+                .filter(d => !isNaN(d.temp))
         );
+
+        // TODO: REMOVE THIS
+        const getMonth = (dayOfYear) => {
+            const date = new Date(1980, 0); // Start from a non-leap year
+            date.setDate(dayOfYear + 1);    // Set day of year
+            return date.getMonth() + 1;     // getMonth is zero-based
+        };
+
+        // [1] Calculate mean temperature
+        const meanTemp = d3.mean(rawData, d => d.temp);
+
+        // [2] Define scaling factor function
+        const getScalingFactor = (dayOfYear) => {
+            const radians = (2 * Math.PI * dayOfYear) / 365;        // Convert day of year to radians
+            return 0.5 * (1 + Math.sin(radians - Math.PI / 2));     // Sinusoidal function, peaks at mid-year
+        };
+
+        // [3] Generate amplified data
+        cleanData = rawData.map(d => {
+            const scalingFactor = getScalingFactor(d.dayOfYear);
+
+            const ampTemp = (d.temp - meanTemp) * (1 + scalingFactor * 20.0) + meanTemp;
+
+            const month = getMonth(d.dayOfYear);
+            console.log(`Year: ${d.year}, Month: ${month}, ampTemp: ${ampTemp}`);
+
+            return {
+                ...d,
+                amplifiedTemp: isNaN(ampTemp) ? null : ampTemp
+            };
+        }).filter(d => d.amplifiedTemp !== NaN && d.year != 2024);
+
+        cleanData = Array.from(d3.group(cleanData, d => d.year).values())
+            .map(yearData => yearData.length === 366 ? yearData.slice(0, 365) : yearData)
+            .sort((a, b) => b[0].year - a[0].year);
+
+        console.log("Loaded and cleaned data:", cleanData);
     });
 }
 
 function app() {
     loadData().then(() => {
-        // 'width' and 'height' needs to be dynamic
-        const width = 1200;
-        const height = 760;
-        const marginTop = 60;
-        const marginRight = 10;
-        const marginBottom = 20;
-        const marginLeft = 10;
-        const overlap = 16;
-        const yearPadding = 50; 
-        const amplificationFactor = 5;
-
-        const meanTemp = d3.mean(OSTData, d => d.temp);
-
-        const getScalingFactor = (dayOfYear) => {
-            const radians = (2 * Math.PI * dayOfYear) / 365;  // Convert day of year to radians
-            return 0.5 * (1 + Math.sin(radians - Math.PI / 2));  // Sinusoidal function, peaks at mid-year
-        };
-
-        const amplifiedData = OSTData.map(d => {
-            const scalingFactor = getScalingFactor(d.dayOfYear);
-
-            const ampTemp = (d.temp - meanTemp) * amplificationFactor * scalingFactor + meanTemp;
-            return {
-                ...d,
-                amplifiedTemp: isNaN(ampTemp) ? null : ampTemp
-            };
-        }).filter(d => d.amplifiedTemp !== NaN);
-
-        const x = d3.scaleLinear()
-            .domain([0, 365])  // Normalized for each year
-            .range([marginLeft, width - marginRight]);
-
-        const z = d3.scaleBand()
-            .domain([...new Set(OSTData.map(d => d.year))])
-            .range([marginTop, height - marginBottom - marginBottom])
-            .padding(0.1);
-
-        // const yExtent = d3.extent(amplifiedData, d => d.amplifiedTemp);
-
-        // console.log(`yExtentn Idx .1: ${yExtent[0]} --- yExtentn Idx .2: ${yExtent[1]}`);
-
-        const y = d3.scaleLinear()
-            .domain(d3.extent(amplifiedData, d => d.amplifiedTemp))  // Adjust based on temperature values
-            .range([z.bandwidth(), 0]);
-
-        const line = d3.line()
-            .defined(d => !isNaN(d.amplifiedTemp))
-            .x(d => x(d.dayOfYear))
-            .y(d => y(d.amplifiedTemp));   // Change this! * 20
-
-        const svg = d3.select('body')
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("viewBox", [0, 0, width, height])
-            .attr("style", "max-width: 100%; height: auto;");
-
-        svg.append("g")
-            .attr("fill", "none")
-            .attr("stroke", "black")
-            .selectAll("path")
-            .data(d3.groups(amplifiedData, d => d.year))
-            .join("path")
-            .attr("transform", d => `translate(0,${z(d[0])})`)
-            .attr("d", d => {
-                return line(d[1]);
-            });
-
-        // Add X-axis
-        svg.append("g")
-            .attr("transform", `translate(0,${height - marginBottom})`)
-            .call(d3.axisBottom(x)
-                .tickValues(d3.range(0, 365, 30))  // Monthly intervals
-                .tickFormat(d => {
-                    const month = new Date(1982, 0, d).toLocaleString('default', { month: 'short' });
-                    return d % 30 === 0 ? month : "";  // Show month name only at the start of each month
-                }))
-            .call(g => g.select(".domain").remove());
-
-        // Y-Axis (Temperature) [TODO: Condense this down to make it more simple]
-        const yAxis = svg.append("g")
-            .attr("class", "y axis")
-            .call(d3.axisLeft(y).ticks(5));
-
-        yAxis.append("text")
-            .attr("fill", "#000")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 6)
-            .attr("dy", "-5.1em")
-            .attr("text-anchor", "end")
-            .text("Temperature (°C)");
-
-        // Z-axis (Years)
-        svg.append("g")
-            .selectAll("text")
-            .data([...new Set(OSTData.map(d => d.year))])
-            .join("text")
-            .attr("x", -marginLeft)
-            .attr("y", d => z(d) + z.bandwidth() / 2)
-            .attr("dy", "0.35em")
-            .attr("text-anchor", "start")
-            .text(d => d);
+        drawArt();
     });
 }
 
+
+function drawArt() {
+    const width = 1200;
+    const height = 760;
+    const marginTop = 200;
+    const marginRight = 10;
+    const marginBottom = 20;
+    const marginLeft = 50;
+    const overlap = 14;
+
+    const x = d3.scaleLinear()
+        .domain([0, cleanData[0].length - 1])
+        .range([marginLeft, width - marginRight])
+
+    const y = d3.scalePoint()
+        .domain(cleanData.map((_, i) => i))
+        .range([marginTop, height - marginBottom])
+
+    const z = d3.scaleLinear()
+        .domain([
+            d3.min(cleanData, d => d3.min(d, d => d.amplifiedTemp)),
+            d3.max(cleanData, d => d3.max(d, d => d.amplifiedTemp))
+        ])
+        .range([0, -overlap * y.step()])
+
+    const area = d3.area()
+        .defined(d => {
+            const isValid = !isNaN(d.amplifiedTemp);
+            if (!isValid) {
+                console.log("Invalid data point in area:", d);
+            }
+            return isValid;
+        })
+        .x((_, i) => x(i))
+        .y0(0)
+        .y1(d => z(d.amplifiedTemp));
+
+    const line = area.lineY1();
+
+    console.log("x scale domain:", x.domain());
+    console.log("x scale range:", x.range());
+    console.log("y scale domain:", y.domain());
+    console.log("y scale range:", y.range());
+    console.log("z scale domain:", z.domain());
+    console.log("z scale range:", z.range());
+
+    const svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    const serie = svg.append("g")
+        .selectAll("g")
+        .data(cleanData)
+        .enter()
+        .append("g")
+            .attr("transform", (d, i) => `translate(0, ${y(i) + 1})`);
+
+    serie.append("path")
+        .attr("fill", "#000")
+        .attr("d", area);
+    
+    serie.append("path")
+        .attr("fill", "none")
+        .attr("stroke", "white")
+        .attr("d", line);
+
+    // serie.append("path")
+    //     .attr("fill", "#fff")
+    //     .attr("d", d => {
+    //         const pathData = area(d);
+    //         console.log("Area path data for year", d[0].year, ":", pathData);
+    //         return area(d);
+    //     });
+
+    // serie.append("path")
+    //     .attr("fill", "none")
+    //     .attr("stroke", "black")
+    //     .attr("d", d => {
+    //         const pathData = line(d);
+    //         console.log("Line path data for year", d[0].year, ":", pathData);
+    //         return pathData;
+    //     });
+
+    const monthStartDays = 
+    [
+        { month: "Jan", day: 0 },
+        { month: "Feb", day: 31 },
+        { month: "Mar", day: 59 },
+        { month: "Apr", day: 90 },
+        { month: "May", day: 120 },
+        { month: "Jun", day: 151 },
+        { month: "Jul", day: 181 },
+        { month: "Aug", day: 212 },
+        { month: "Sep", day: 243 },
+        { month: "Oct", day: 273 },
+        { month: "Nov", day: 304 },
+        { month: "Dec", day: 334 }
+    ];
+
+    const xAxis = d3.axisBottom(x)
+        .tickValues(monthStartDays.map(d => d.day))
+        .tickFormat((d, i) => monthStartDays[i].month)
+        .ticks(width / 80);
+
+    // [] We append the axis to our main SVG, setting the 'text', 'line' and 'path' to being white:
+    svg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(xAxis)
+        .call(g => g.selectAll("text").attr("fill", "white")) 
+        .call(g => g.selectAll("line").attr("stroke", "white")) 
+        .call(g => g.selectAll("path").attr("stroke", "white")); 
+}
+
+
 app();
-
-
-
-// let OSTData = [];
-
-// function loadData() {
-//     return d3.json("./Monthly_Ocean_Surface_Temp.json").then((d) => {
-//         OSTData = d[0].data.map((item, index) => ({
-//             month: new Date(item[0].replace(/,/g, '/')).getMonth(),  // Extract month as an integer (0-11)
-//             temp: parseFloat(item[1]),
-//             year: Math.floor(index / 12)  // Group by year
-//         }));
-//     });
-// }
-
-// function app() {
-//     loadData().then(() => {
-//         const width = 1152;
-//         const height = 760;
-//         const marginTop = 60;
-//         const marginRight = 10;
-//         const marginBottom = 20;
-//         const marginLeft = 10;
-//         const overlap = 16;
-
-//         const x = d3.scaleLinear()
-//             .domain([0, 11])  // Months from 0 to 11
-//             .range([marginLeft, width - marginRight]);
-
-//         const z = d3.scalePoint()
-//             .domain([...new Set(OSTData.map(d => d.year))])
-//             .range([marginTop, height - marginBottom]);
-
-//         const y = d3.scaleLinear()
-//             .domain(d3.extent(OSTData, d => d.temp))  // Adjust based on temperature values
-//             .range([0, -overlap * z.step()]);
-
-//         const line = d3.line()
-//             .defined(d => !isNaN(d.temp))
-//             .x(d => x(d.month))
-//             .y(d => y(d.temp));
-
-//         const svg = d3.select("#art-container")
-//             .append("svg")
-//             .attr("width", width)
-//             .attr("height", height)
-//             .attr("viewBox", [0, 0, width, height])
-//             .attr("style", "max-width: 100%; height: auto;");
-
-//         svg.append("g")
-//             .attr("fill", "none")
-//             .attr("stroke", "black")
-//             .selectAll("path")
-//             .data(d3.groups(OSTData, d => d.year))
-//             .join("path")
-//             .attr("transform", d => `translate(0,${z(d[0])})`)
-//             .attr("d", d => line(d[1]));
-
-//         // Add X-axis
-//         svg.append("g")
-//             .attr("transform", `translate(0,${height - marginBottom})`)
-//             .call(d3.axisBottom(x).ticks(12).tickFormat(d3.format("d")))  // Tick for each month
-//             .call(g => g.select(".domain").remove())
-//             .call(g => g.select(".tick:first-of-type text").append("tspan").attr("x", 10).text(" month"));
-
-//         // Add labels for the Y-axis (Temperature)
-//         const yAxis = svg.append("g")
-//             .attr("class", "y axis")
-//             .call(d3.axisLeft(y).ticks(5));
-
-//         yAxis.append("text")
-//             .attr("fill", "#000")
-//             .attr("transform", "rotate(-90)")
-//             .attr("y", 6)
-//             .attr("dy", "-5.1em")
-//             .attr("text-anchor", "end")
-//             .text("Temperature (°C)");
-//     });
-// }
-
-// app();
-
-
-
-
-
-
-// let OSTData     = [];
-
-// function loadData() {
-//     return d3.json("./Monthly_Ocean_Surface_Temp.json").then((d) => {
-//         OSTData = d[0].data.map((item, index) => ({
-//             x: index,
-//             y: parseFloat(item[1]),
-//             z: Math.floor(index / 12)  // Group by year
-//         }));
-//         maxTemp = d3.max(OSTData, d => d.y);
-//         minTemp = d3.min(OSTData, d => d.y);
-//     });
-// }
-
-
-// function draw() {
-//     const width = 1152;
-//     const height = 760;
-//     const marginTop = 60;
-//     const marginRight = 10;
-//     const marginBottom = 20;
-//     const marginLeft = 10;
-//     const overlap = 16;
-
-//     const x = d3.scaleLinear()
-//         .domain(d3.extent(OSTData, d => d.x))
-//         .range([marginLeft, width - marginRight]);
-
-//     const z = d3.scalePoint()
-//         .domain(OSTData.map(d => d.z))
-//         .range([marginTop, height - marginBottom]);
-
-//     const y = d3.scaleLinear()
-//         .domain([0, 11])
-//         .range([0, -overlap * z.step()]);
-
-//     const line = d3.line()
-//         .defined(d => !isNaN(d.y))
-//         .x(d => x(d.x))
-//         .y(d => y(d.y));
-
-//     const svg = d3.select("#art-container")
-//         .append("svg")
-//         .attr("width", width)
-//         .attr("height", height)
-//         .attr("viewBox", [0, 0, width, height])
-//         .attr("style", "max-width: 100%; height: auto;");
-
-//     svg.append("g")
-//         .attr("fill", "white")
-//         .attr("stroke", "black")
-//         .selectAll("path")
-//         .data(d3.groups(OSTData, d => d.z))
-//         .join("path")
-//         .attr("transform", d => `translate(0,${z(d[0])})`)
-//         .attr("d", d => line(d[1]));
-
-//     svg.append("g")
-//         .attr("transform", `translate(0,${height - marginBottom})`)
-//         .call(d3.axisBottom(x).ticks(width / 80))
-//         .call(g => g.select(".domain").remove())
-//         .call(g => g.select(".tick:first-of-type text").append("tspan").attr("x", 10).text(" ms"));
-// }
-
-// function app() {
-//     loadData().then(() => {
-//         draw();
-//     });
-// }
-
-// app();
