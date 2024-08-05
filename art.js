@@ -1,3 +1,20 @@
+// TODO:
+//  -> Add info for specific year / point
+//  -> Add a nice unobstructive fade in for both the year and color
+//  -> Put an indicator when hovering which states to the user that the colors are specific for that year
+//     indicating that it is intended to be an unobstructive way of showing the coolest and hottest temperatures
+
+
+
+/*
+    Discovered in 1967 by astrophysicist Jocelyn Bell Burnell, the neutron star known as CP 1919 was 
+
+    PSR B1919+21 
+
+    In 
+
+*/
+
 let rawData     = [];
 let cleanData   = [];
 
@@ -61,6 +78,7 @@ function app() {
 
 
 function drawArt() {
+    // [0]
     const width = 1200;
     const height = 760;
     const marginTop = 200;
@@ -69,6 +87,7 @@ function drawArt() {
     const marginLeft = 50;
     const overlap = 14;
 
+    // [1]
     const x = d3.scaleLinear()
         .domain([0, cleanData[0].length - 1])
         .range([marginLeft, width - marginRight])
@@ -94,16 +113,18 @@ function drawArt() {
         })
         .x((_, i) => x(i))
         .y0(0)
-        .y1(d => z(d.amplifiedTemp));
+        .y1(d => z(d.amplifiedTemp))
+        .curve(d3.curveBasis);
 
     const line = area.lineY1();
 
-    console.log("x scale domain:", x.domain());
-    console.log("x scale range:", x.range());
-    console.log("y scale domain:", y.domain());
-    console.log("y scale range:", y.range());
-    console.log("z scale domain:", z.domain());
-    console.log("z scale range:", z.range());
+    // DEBUGGING
+    // console.log("x scale domain:", x.domain());
+    // console.log("x scale range:", x.range());
+    // console.log("y scale domain:", y.domain());
+    // console.log("y scale range:", y.range());
+    // console.log("z scale domain:", z.domain());
+    // console.log("z scale range:", z.range());
 
     const svg = d3.select("body").append("svg")
         .attr("width", width)
@@ -118,12 +139,49 @@ function drawArt() {
 
     serie.append("path")
         .attr("fill", "#000")
-        .attr("d", area);
+        .attr("d", area)
+        .attr("class", "area-path");
     
     serie.append("path")
         .attr("fill", "none")
         .attr("stroke", "white")
-        .attr("d", line);
+        .attr("d", line)
+        .attr("class", "line-path");
+
+    svg.append("defs").append("linearGradient")
+        .attr("id", "tempGradient")
+        .attr("x1", "0%")
+        .attr("x2", "0%")
+        .attr("y1", "0%")
+        .attr("y2", "100%")
+        .append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", "red");
+
+    svg.select("defs").select("linearGradient")
+        .append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", "blue");
+
+    serie.selectAll("circle")
+        .data(d => d)
+        .enter()
+        .append("circle")
+            .attr("cx", (_, i) => x(i))
+            .attr("cy", d => z(d.amplifiedTemp))
+            .attr("r", 5) 
+            .attr("fill", "none")
+            //.attr("fill", "orange")
+            .attr("opacity", 0.4)
+            .attr("pointer-events", "all")              // ! Allows the circles to capture events. Thanks for wasting 3 hours JS.
+            .on("mouseover", function(event, d) {
+                d3.select(this.parentNode).select(".line-path").attr("stroke", "url(#tempGradient)");
+                d3.select(this).attr("fill", "url(#tempGradient)");
+            })
+            .on("mouseout", function(event, d) {
+                d3.select(this.parentNode).select(".line-path").attr("stroke", "white");
+                d3.select(this).attr("fill", "none");
+            });
 
     // serie.append("path")
     //     .attr("fill", "#fff")
