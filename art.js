@@ -275,6 +275,8 @@ function scrollEffect() {
 
             contentSections.each(function() {
                 var section = $(this);
+                var sectionName = $(this).attr('id');
+                var navigationMatch = $('nav a[href="#' + sectionName + '"]');
                 var sectionOffset = section.offset().top;
                 var sectionHeight = section.height();
                 var sectionBottom = sectionOffset + sectionHeight;
@@ -285,8 +287,10 @@ function scrollEffect() {
 
                 if (isActive) {
                     section.addClass('active');
+                    navigationMatch.addClass('active');
                 } else {
                     section.removeClass('active');
+                    navigationMatch.removeClass('active');
                 }
             });
         }
