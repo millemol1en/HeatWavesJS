@@ -74,7 +74,7 @@ function drawArt() {
     const height = 760;
     const marginTop = 200;
     const marginRight = 10;
-    const marginBottom = 0;
+    const marginBottom = 20;
     const marginLeft = 50;
     const overlap = 14;
 
