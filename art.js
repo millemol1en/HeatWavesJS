@@ -62,6 +62,9 @@ function app() {
     loadData().then(() => {
         drawArt();
     });
+    scrollEffect();
+
+    
 }
 
 
@@ -71,7 +74,7 @@ function drawArt() {
     const height = 760;
     const marginTop = 200;
     const marginRight = 10;
-    const marginBottom = 20;
+    const marginBottom = 0;
     const marginLeft = 50;
     const overlap = 14;
 
@@ -115,7 +118,7 @@ function drawArt() {
     // console.log("z scale range:", z.range());
 
     // [] Target and create the main SVG to contain the generative art:
-    const svg = d3.select("body").append("svg")
+    const svg = d3.select("#art-container").append("svg")
         .attr("width", width)
         .attr("height", height);
 
@@ -168,7 +171,6 @@ function drawArt() {
         .append("circle")
             .attr("cx", (_, i) => x(i))
             .attr("cy", d => {
-                console.log(`Z values: ${z(d.amplifiedTemp)}`);
                 return z(d.amplifiedTemp);
             })
             .attr("r", 5) 
@@ -246,6 +248,48 @@ function drawArt() {
         .call(g => g.selectAll("line").attr("stroke", "white")) 
         .call(g => g.selectAll("path").attr("stroke", "white")); 
 }
+
+function scrollEffect(){
+    $(document).ready(function(){
+        var contentSection = $('.content-section');
+        var navigation = $('nav');
+        
+        //when a nav link is clicked, smooth scroll to the section
+        navigation.on('click', 'a', function(event){
+            event.preventDefault(); //prevents previous event
+            smoothScroll($(this.hash));
+        });
+        
+        //update navigation on scroll...
+        $(window).on('scroll', function(){
+            updateNavigation();
+        })
+        //...and when the page starts
+        updateNavigation();
+        
+        /////FUNCTIONS
+        function updateNavigation(){
+            contentSection.each(function(){
+                var sectionName = $(this).attr('id');
+                var navigationMatch = $('nav a[href="#' + sectionName + '"]');
+                if( ($(this).offset().top - $(window).height()/2 < $(window).scrollTop()) &&
+                    ($(this).offset().top + $(this).height() - $(window).height()/2 > $(window).scrollTop()))
+                    {
+                        navigationMatch.addClass('active-section');
+                    }
+                else {
+                    navigationMatch.removeClass('active-section');
+                }
+            });
+        }
+        function smoothScroll(target){
+            $('body,html').animate({
+                scrollTop: target.offset().top
+            }, 800);
+        }
+    });
+}
+
 
 
 app();

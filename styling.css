@@ -1,12 +1,102 @@
-html, body {
-    margin: 0; 
-    height: 100%; 
-    overflow: visible; 
-    background-color: black;    
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+@import url(https://fonts.googleapis.com/css?family=Lato);
+
+html{
+	height: 100%;
+	font-family: 'Open Sans', sans-serif;
+	background-color: #E9E8E2;
+}
+body{
+	height: 100%;
+}
+nav{
+	position: fixed;
+	top: 5%;
+	bottom: auto;
+	z-index: 10;
+}
+ul{
+	list-style: none;
+	padding: 0;
+}
+li{
+	padding: 10px 0;
+}
+span{
+	display: inline-block;
+	position:relative;
+}
+nav a{
+	display: inline-block;
+	color: #272727;
+	text-decoration: none;
+	font-size: 1em;
+}
+.circle{
+	height: 10px;
+	width: 10px;
+	left: -10px;
+	border-radius: 50%;
+	background-color: #272727;
+}
+.rect{
+	height: 3px;
+	width: 0px;
+	left: 0;
+	bottom: 4px;
+	background-color: #272727;
+	-webkit-transition: -webkit-transform 0.6s, width 1s;
+	-moz-transition: -webkit-transform 0.6s, width 1s;
+	transition: transform 0.6s, width 1s;
+}
+nav a:hover, nav .active-section{
+	color: #9b59b6;
+}
+nav a:hover span, nav .active-section span{
+	background-color: #9b59b6;
+}
+nav .active-section .rect{
+	width: 40px;
+}
+.content-section{
+	position: relative;
+	width: 80%;
+	height: 90%;
+	left: 50%;
+	background-color: #ecf1f1;
+	text-align: center;
+	-webkit-transform: translateX(-50%);
+  -moz-transform: translateX(-50%);
+  -ms-transform: translateX(-50%);
+  -o-transform: translateX(-50%);
+  transform: translateX(-50%);
+}
+.content-section h1{
+	position: relative;
+	top: 50%;
+	left: 50%;
+	-webkit-transform: translateX(-50%) translateY(-50%);
+  -moz-transform: translateX(-50%) translateY(-50%);
+  -ms-transform: translateX(-50%) translateY(-50%);
+  -o-transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
+	color:#9b59b6;
+	font-size: 3em;
 }
 
-h1 {
-    color: white;
-    size: 30vh;
-    font-family: "Gill Sans", sans-serif;
+/*CREDITS*/
+.about{
+	position: fixed;
+	bottom:0; 
+	left: 1%;
+}
+.about a{
+	text-decoration: none;
+	font-size: 1.5em;
+}
+.about a:visited, .about a:active, .about a:link{
+	color:#000;
+}
+.about a:hover{
+	color: red;
 }
