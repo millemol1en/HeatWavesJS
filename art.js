@@ -249,46 +249,57 @@ function drawArt() {
         .call(g => g.selectAll("path").attr("stroke", "white")); 
 }
 
-function scrollEffect(){
-    $(document).ready(function(){
-        var contentSection = $('.content-section');
+function scrollEffect() {
+    $(document).ready(function() {
+        var contentSections = $('.content-section');
         var navigation = $('nav');
-        
-        //when a nav link is clicked, smooth scroll to the section
-        navigation.on('click', 'a', function(event){
-            event.preventDefault(); //prevents previous event
+
+        // Smooth scroll to the section when a nav link is clicked
+        navigation.on('click', 'a', function(event) {
+            event.preventDefault(); // Prevent default action
             smoothScroll($(this.hash));
         });
-        
-        //update navigation on scroll...
-        $(window).on('scroll', function(){
+
+        // Update navigation and section visibility on scroll
+        $(window).on('scroll', function() {
             updateNavigation();
-        })
-        //...and when the page starts
+        });
+
+        // Initial update for navigation and sections visibility
         updateNavigation();
-        
-        /////FUNCTIONS
-        function updateNavigation(){
-            contentSection.each(function(){
-                var sectionName = $(this).attr('id');
-                var navigationMatch = $('nav a[href="#' + sectionName + '"]');
-                if( ($(this).offset().top - $(window).height()/2 < $(window).scrollTop()) &&
-                    ($(this).offset().top + $(this).height() - $(window).height()/2 > $(window).scrollTop()))
-                    {
-                        navigationMatch.addClass('active-section');
-                    }
-                else {
-                    navigationMatch.removeClass('active-section');
+
+        ///// FUNCTIONS
+        function updateNavigation() {
+            var scrollTop = $(window).scrollTop();
+            var windowHeight = $(window).height();
+
+            contentSections.each(function() {
+                var section = $(this);
+                var sectionOffset = section.offset().top;
+                var sectionHeight = section.height();
+                var sectionBottom = sectionOffset + sectionHeight;
+
+                // Section is considered active if it is at least halfway in view
+                var isActive = (scrollTop + windowHeight > sectionOffset + sectionHeight / 2) &&
+                               (scrollTop < sectionBottom - sectionHeight / 2);
+
+                if (isActive) {
+                    section.addClass('active');
+                } else {
+                    section.removeClass('active');
                 }
             });
         }
-        function smoothScroll(target){
+
+        function smoothScroll(target) {
             $('body,html').animate({
                 scrollTop: target.offset().top
             }, 800);
         }
     });
 }
+
+
 
 
 
