@@ -1,10 +1,11 @@
 {
-    "CO2": 
-    [
+    "Molecules":
+    {
+        "CO2": 
         {
             "atoms": 
             [
-                {"atom": "C", "size": 16},
+                {"atom": "C", "size": 18},
                 {"atom": "O", "size": 12},
                 {"atom": "O", "size": 12}
             ],
@@ -13,6 +14,30 @@
                 {"source": 0, "target": 1,  "bond": 2},
                 {"source": 0, "target": 2,  "bond": 2}
             ]
+        },
+        "N2":
+        {
+            "atoms": 
+            [
+                {"atom": "N", "size": 16},
+                {"atom": "N", "size": 16}
+            ],
+            "links": 
+            [
+                {"source": 0, "target": 1,  "bond": 3}
+            ]
+        },
+        "O2":
+        {
+            "atoms": 
+            [
+                {"atom": "O", "size": 12},
+                {"atom": "O", "size": 12}
+            ],
+            "links": 
+            [
+                {"source": 0, "target": 1,  "bond": 2}
+            ]
         }
-    ]
+    }
 }
