@@ -13,7 +13,8 @@ body{
 }
 nav{
 	position: fixed;
-	top: 5%;
+	top: 2%;
+	left: 2%;
 	bottom: auto;
 	z-index: 10;
 }
@@ -26,7 +27,7 @@ li{
 }
 span{
 	display: inline-block;
-	position:relative;
+	position: relative;
 }
 nav a{
 	display: inline-block;
@@ -58,7 +59,7 @@ nav a:hover span, nav .active span{
 	background-color: #9b59b6;
 }
 nav .active .rect{
-	width: 40px;
+	width: 30px;
 }
 .content-section{
 	position: relative;
@@ -66,14 +67,13 @@ nav .active .rect{
 	backdrop-filter: blur(4px);
 	color: #fff;
 	font-size: 30px;
-	padding: 50px;
+	padding: 0px;
 	border-radius: 10px;
-	box-shadow: 0 5px 50px rgba(0,0,0,0.5);
-
-	width: 80%;
-	height: 90%;
+	box-shadow: 2px 5px 50px rgba(0,0,0,0.5);
+	width: 85%;
+	height: 85%;
 	left: 50%;
-	background-color: #1b1b1b;
+	background-color: #090909;
     -webkit-transform: translateX(-50%);
     -moz-transform: translateX(-50%);
     -ms-transform: translateX(-50%);
@@ -82,38 +82,26 @@ nav .active .rect{
 	text-align: center;transform: translateX(-50%);
     opacity: 0; /* Start hidden */
     transition: opacity 0.5s ease-in-out; 
-    
 }
+
+#section3{
+    background-color: #090909;
+	height: 120vh;
+}
+
 .content-section h1{
 	position: relative;
 	top: 50%;
 	left: 50%;
 	-webkit-transform: translateX(-50%) translateY(-50%);
-  -moz-transform: translateX(-50%) translateY(-50%);
-  -ms-transform: translateX(-50%) translateY(-50%);
-  -o-transform: translateX(-50%) translateY(-50%);
-  transform: translateX(-50%) translateY(-50%);
+	-moz-transform: translateX(-50%) translateY(-50%);
+	-ms-transform: translateX(-50%) translateY(-50%);
+	-o-transform: translateX(-50%) translateY(-50%);
+	transform: translateX(-50%) translateY(-50%);
 	color:#9b59b6;
 	font-size: 3em;
 }
 
-.content-section.active {
+.content-section.active{
     opacity: 1; /* Fully visible when active */
-}
-
-/*CREDITS*/
-.about{
-	position: fixed;
-	bottom:0; 
-	left: 1%;
-}
-.about a{
-	text-decoration: none;
-	font-size: 1.5em;
-}
-.about a:visited, .about a:active, .about a:link{
-	color:#000;
-}
-.about a:hover{
-	color: red;
 }

@@ -27,20 +27,27 @@ function loadData() {
             return date.getMonth() + 1;     // getMonth is zero-based
         };
 
-        // [1] Calculate mean temperature
+        // [1] Calculate mean temperature based on all temperature values
         const meanTemp = d3.mean(rawData, d => d.temp);
+
+        // [2] Calculate the mean temperature based on an individual year
+        function getAnnualMeanTemp(year) {
+            const yearData = rawData.filter(d => d.year === year);
+            return d3.mean(yearData, d => d.temp);
+        }
 
         // [2] Define scaling factor function - fix this 
         const getScalingFactor = (dayOfYear) => {
             const radians = (2 * Math.PI * dayOfYear) / 365;      // [2.1] Convert day of year to radians
-            return 2 * (1 + Math.sin(radians - Math.PI / 2));     // [2.2] Sinusoidal function, peaks at mid-year
+            return (1 + (Math.sin(radians - Math.PI / 2))) * 10.0;     // [2.2] Sinusoidal function, peaks at mid-year
         };
 
         // [3] Generate amplified data
         cleanData = rawData.map(d => {
-            const scalingFactor = getScalingFactor(d.dayOfYear) * 20.0;
+            const annualMeanTemp = getAnnualMeanTemp(d.year);
+            const scalingFactor = getScalingFactor(d.dayOfYear);
 
-            const ampTemp = (d.temp - meanTemp) * (1 + scalingFactor) + meanTemp;
+            const ampTemp = (d.temp - annualMeanTemp) * (1 + scalingFactor) + meanTemp;
 
             const month = getMonth(d.dayOfYear);
 
@@ -70,12 +77,12 @@ function app() {
 
 function drawArt() {
     // [0]
-    const width = 1200;
-    const height = 760;
+    const width = 980;     // Make this dependent on size of <section>
+    const height = 740;     // Make this dependent on size of <section>
     const marginTop = 200;
-    const marginRight = 10;
+    const marginRight = 40;
     const marginBottom = 20;
-    const marginLeft = 50;
+    const marginLeft = 40;
     const overlap = 14;
 
     // [1]
@@ -202,23 +209,6 @@ function drawArt() {
                 yearLabel.attr("visibility", "hidden");
             });
 
-    // serie.append("path")
-    //     .attr("fill", "#fff")
-    //     .attr("d", d => {
-    //         const pathData = area(d);
-    //         console.log("Area path data for year", d[0].year, ":", pathData);
-    //         return area(d);
-    //     });
-
-    // serie.append("path")
-    //     .attr("fill", "none")
-    //     .attr("stroke", "black")
-    //     .attr("d", d => {
-    //         const pathData = line(d);
-    //         console.log("Line path data for year", d[0].year, ":", pathData);
-    //         return pathData;
-    //     });
-
     const monthStartDays = 
     [
         { month: "Jan", day: 0 },
@@ -249,26 +239,26 @@ function drawArt() {
         .call(g => g.selectAll("path").attr("stroke", "white")); 
 }
 
+// [] jQuery used to operate the smooth scrolling between the <section> elements:
 function scrollEffect() {
     $(document).ready(function() {
         var contentSections = $('.content-section');
         var navigation = $('nav');
 
-        // Smooth scroll to the section when a nav link is clicked
+        // [] Smooth scroll to the section when a nav link is clicked
         navigation.on('click', 'a', function(event) {
             event.preventDefault(); // Prevent default action
             smoothScroll($(this.hash));
         });
 
-        // Update navigation and section visibility on scroll
+        // [] Update navigation and section visibility on scroll
         $(window).on('scroll', function() {
             updateNavigation();
         });
 
-        // Initial update for navigation and sections visibility
+        // [] Initial update for navigation and sections visibility
         updateNavigation();
 
-        ///// FUNCTIONS
         function updateNavigation() {
             var scrollTop = $(window).scrollTop();
             var windowHeight = $(window).height();
@@ -297,7 +287,7 @@ function scrollEffect() {
 
         function smoothScroll(target) {
             $('body,html').animate({
-                scrollTop: target.offset().top
+                scrollTop: target.offset().top - 30
             }, 800);
         }
     });
