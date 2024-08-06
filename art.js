@@ -43,7 +43,6 @@ function loadData() {
             const ampTemp = (d.temp - meanTemp) * (1 + scalingFactor) + meanTemp;
 
             const month = getMonth(d.dayOfYear);
-            console.log(`Year: ${d.year}, Month: ${month}, ampTemp: ${ampTemp}`);
 
             return {
                 ...d,
@@ -55,7 +54,7 @@ function loadData() {
             .map(yearData => yearData.length === 366 ? yearData.slice(0, 365) : yearData)
             .sort((a, b) => b[0].year - a[0].year);
 
-        console.log("Loaded and cleaned data:", cleanData);
+        console.log("Loaded and cleaned data:", cleanData); // [TODO] REMOVE THIS
     });
 }
 
@@ -115,6 +114,7 @@ function drawArt() {
     // console.log("z scale domain:", z.domain());
     // console.log("z scale range:", z.range());
 
+    // [] Target and create the main SVG to contain the generative art:
     const svg = d3.select("body").append("svg")
         .attr("width", width)
         .attr("height", height);
@@ -137,6 +137,7 @@ function drawArt() {
         .attr("d", line)
         .attr("class", "line-path");
 
+    // [] Used to create the linear gradient
     svg.append("defs").append("linearGradient")
         .attr("id", "tempGradient")
         .attr("x1", "0%")
@@ -152,24 +153,51 @@ function drawArt() {
         .attr("offset", "100%")
         .attr("stop-color", "blue");
 
+    // []
+    const yearLabel = svg.append("text")
+        .attr("x", marginLeft - 10) // Position it to the left of the margin
+        .attr("y", marginTop) // Initial y position (will be updated)
+        .attr("text-anchor", "end") // Align the text to the end (right-align)
+        .attr("fill", "white") // Text color
+        .attr("font-size", "12px") // Font size
+        .attr("visibility", "hidden"); // Initially hidden
+
     serie.selectAll("circle")
         .data(d => d)
         .enter()
         .append("circle")
             .attr("cx", (_, i) => x(i))
-            .attr("cy", d => z(d.amplifiedTemp))
+            .attr("cy", d => {
+                console.log(`Z values: ${z(d.amplifiedTemp)}`);
+                return z(d.amplifiedTemp);
+            })
             .attr("r", 5) 
             .attr("fill", "none")
             //.attr("fill", "orange")
             .attr("opacity", 0.4)
             .attr("pointer-events", "all")              // ! Allows the circles to capture events. Thanks for wasting 3 hours JS.
             .on("mouseover", function(event, d) {
+                const locateFirstDataPointByYear = (year) => {
+                    return cleanData[(2023 - year)][0].amplifiedTemp;
+                }
+
                 d3.select(this.parentNode).select(".line-path").attr("stroke", "url(#tempGradient)");
                 d3.select(this).attr("fill", "url(#tempGradient)");
+
+                //console.log(`Z value: ${z((locateFirstDataPointByYear(d.year)))}`);
+
+
+                yearLabel
+                    //.attr("y", z((locateFirstDataPointByYear(d.year)))) 
+                    .attr("transform", `translate(0, ${z(locateFirstDataPointByYear(d.year))})`)
+                    .attr("visibility", "visible") 
+                    .text(d.year);
             })
             .on("mouseout", function(event, d) {
                 d3.select(this.parentNode).select(".line-path").attr("stroke", "white");
                 d3.select(this).attr("fill", "none");
+
+                yearLabel.attr("visibility", "hidden");
             });
 
     // serie.append("path")

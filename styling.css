@@ -1,8 +1,12 @@
-
-
 html, body {
     margin: 0; 
     height: 100%; 
     overflow: visible; 
     background-color: black;    
+}
+
+h1 {
+    color: white;
+    size: 30vh;
+    font-family: "Gill Sans", sans-serif;
 }
