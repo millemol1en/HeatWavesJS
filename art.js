@@ -19,6 +19,11 @@ const overlap       = 14;
 
 let x, y, z, area, line;
 
+let infoBox = d3.select("#info-box");
+let infoYear = d3.select("#info-year");
+let infoCurrentTemp = d3.select("#info-current-temp");
+let infoHottestTemp = d3.select("#info-hottest-temp");
+
 
 function loadData() {
     return d3.json("./data/Daily_Ocean_Surface_Temp.json").then((data) => {
@@ -149,16 +154,7 @@ function drawArt(dataset) {
     svg.select("defs").select("linearGradient")
         .append("stop")
         .attr("offset", "100%")
-        .attr("stop-color", "blue");
-
-    // Year label
-    const yearLabel = svg.append("text")
-        .attr("x", marginLeft - 10)
-        .attr("y", marginTop)
-        .attr("text-anchor", "end")
-        .attr("fill", "white")
-        .attr("font-size", "12px")
-        .attr("visibility", "hidden");
+        .attr("stop-color", "blue");    
 
     // Add circles for data points
     serie.selectAll("circle")
@@ -173,24 +169,24 @@ function drawArt(dataset) {
         .attr("pointer-events", "all")
         .on("mouseover", function(event, d) {
             if (isRawActive) {
-                const locateFirstDataPointByYear = (year) => dataset.find(d => d[0].year === year)[0].temp;
-
                 d3.select(this.parentNode).select(".line-path").attr("stroke", "url(#tempGradient)");
                 d3.select(this).attr("fill", "url(#tempGradient)");
-
-                yearLabel
-                    .attr("transform", `translate(0, ${z(locateFirstDataPointByYear(d.year))})`)
-                    .attr("visibility", "visible")
-                    .text(d.year);
             }
         })
-        .on("mouseout", function(event, d) {
+        .on("mouseout", function(_, _) {
             if (isRawActive) {
                 d3.select(this.parentNode).select(".line-path").attr("stroke", "white");
                 d3.select(this).attr("fill", "none");
-    
-                yearLabel.attr("visibility", "hidden");
             }
+        })
+        .on("click", function(event, d) {
+            const yearData = dataset.find(yd => yd[0].year === d.year);
+            const hottestTemp = d3.max(yearData, d => d.temp);
+
+            // Update info box
+            infoYear.html(`<strong>Year:</strong> ${d.year}`);
+            infoCurrentTemp.html(`<strong>Current Temp:</strong> ${d.temp.toFixed(2)} °C`);
+            infoHottestTemp.html(`<strong>Hottest Temp:</strong> ${hottestTemp.toFixed(2)} °C`);
         });
 
     // X axis
@@ -231,8 +227,6 @@ function drawArt(dataset) {
 }
 
 function updateArt(newData) {
-    console.log(newData);
-
     y = d3.scalePoint()
         .domain(newData.map((_, i) => i))
         .range([marginTop, height - marginBottom]);
@@ -304,17 +298,21 @@ function updateArt(newData) {
 
 function addEventListeners() {
     document.getElementById("raw-view-button").addEventListener("click", () => {
-        console.log("Raw click!");
-        if (!isRawActive) updateArt(rawData);
-        console.log(rawData);
-        isRawActive = true;
+        if (!isRawActive) 
+        {
+            isRawActive = true;
+            toggleInfoBoxVisibility();
+            updateArt(rawData);
+        }
     });
 
     document.getElementById("artistic-view-button").addEventListener("click", () => {
-        console.log("Clean click!");
-        if (isRawActive) updateArt(cleanData);
-        console.log(cleanData);
-        isRawActive = false;
+        if (isRawActive) 
+        {
+            isRawActive = false;
+            toggleInfoBoxVisibility();
+            updateArt(cleanData);
+        }
     });
 }
 
@@ -372,6 +370,14 @@ function scrollEffect() {
     });
 }
 
+function toggleInfoBoxVisibility() {
+    if (isRawActive) {
+        infoBox.style("display", "block");
+    } else {
+        infoBox.style("display", "none");
+    }
+}
+
 // []
 document.addEventListener("DOMContentLoaded", () => {
     const rightSideImage = document.querySelector('.right-side-image');
@@ -410,7 +416,8 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         const distance = Math.sqrt(center.x ** 2 + center.y ** 2);
 
-        image.style.transform = `
+        image.style.transform = 
+        `
             scale3d(1.05, 1.05, 1.05)
             rotate3d(
                 ${center.y / 100},

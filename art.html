@@ -19,18 +19,25 @@
         <a href="#section2">
           <span class="rect"></span>
           <span class="circle"></span>
-          INFO 1
+          CP-1919
         </a>
       </li>
       <li>
         <a href="#section3">
           <span class="rect"></span>
           <span class="circle"></span>
-          INFO 2
+          TI
         </a>
       </li>
       <li>
         <a href="#section4">
+          <span class="rect"></span>
+          <span class="circle"></span>
+          THE LINK
+        </a>
+      </li>
+      <li>
+        <a href="#section5">
           <span class="rect"></span>
           <span class="circle"></span>
           PIECE
@@ -45,12 +52,10 @@
   </section>
 
   <section id="section2" class="content-section">
-    <img src="./pictures/Crab_Nebula.png" alt="Crab Nebula" class="top-right-image">
+    <img src="./pictures/Crab_Nebula.png" alt="Crab Nebula" class="nebula-image">
     <div class="split-container">
-      <div class="left-image">
-        <img src="./pictures/Cambridge_Encycopledia_PSR.png" alt="CE-PSR" class="left-side-image">
-      </div>
       <div class="card" id="jb-card">
+        <img src="./pictures/Cambridge_Encycopledia_PSR.png" alt="CE-PSR" class="left-side-image">
         <div class="card-content">
           <h2>Jocelyn Bell & CP-1919</h2>
           <p>
@@ -71,31 +76,56 @@
         <div class="card-content">
           <h2>Joy Division - Unknown Pleasure</h2>
           <p>
-            In 1979, lead drummer 
+            After having seen it in the Cambridge Encyclopedia of Astronomy, the post-punk band known as Joy Division, would use it for their debut album Unknown Pleasures, released in 1979. 
+            The album's skyrocketing success had a huge impact not only for the band but also for the album's cover, making it become synonymous with youthful rebelliousness, post-modernistic art and revolutionary technology. 
+            The art itself would later invoke Joy Division to create the song, "Transmissions" in 1979, after the release of Unknown Pleasures.
           </p>
         </div>
       </div>
       <div class="right-image">
-        <img src="./pictures/Unknown_Pleasure_Joy_Division.webp" alt="Crab Nebula" class="right-side-image">
+        <img src="./pictures/Unknown_Pleasure_Joy_Division.webp" alt="Joy Division" class="right-side-image">
       </div>
     </div>
   </section>
 
-  <section id="section3" class="content-section">
+  <section id="section4" class="content-section">
     <h1>The Connection</h1>
-    <p>
-      
-    </p>
+    <div class="split-container">
+      <div class="card">
+        <div class="card-content">
+          <p>
+            Like Jocelyn's work, scientific data is used as the core building block - and like Joy Division, 
+            the topic which our piece deals with, Climate Change, is often associated with the rebellious nature
+            of the youth. 
+            <br><br>
+            Taking inspiration from these 2 stories and what they each represent, our project aims to 
+            create a new perspective on the data that has been represented as a graph 1 million times over. 
+            <br><br>
+            The piece takes on 2 different views, one which offers the raw data and interaction along with it as 
+            well as one where it is simply the artistic representation of the piece by itself. 
+          </p>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <section id="section4" class="content-section">
-    <h1></h1>
+  <section id="section5" class="content-section">
     <div class="component-container" id="art-container"></div>
-    <div id="art-container"></div>
-    <div id="button-containers">
-      <button id="raw-view-button">Raw View</button>
-      <button id="artistic-view-button">Artistic View</button>
+    <div id="info-box" class="info-box">
+      <div id="info-year">N/A</div>
+      <div id="info-current-temp">N/A</div>
+      <div id="info-hottest-temp">N/A</div>
     </div>
+    <div class="btn-group">
+      <label class="option">
+          <input type="radio" name="view" id="raw-view-button">
+          <span class="btn btn-warning btn-option">Raw View</span>
+      </label>
+      <label class="option">
+          <input type="radio" name="view" id="artistic-view-button" checked>
+          <span class="btn btn-warning btn-option">Artistic View</span>
+      </label>
+  </div>
   </section>
 
 
