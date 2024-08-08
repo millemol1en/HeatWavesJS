@@ -6,6 +6,7 @@
 
 let rawData     = [];
 let cleanData   = [];
+let isRawActive = false;
 
 function loadData() {
     return d3.json("./data/Daily_Ocean_Surface_Temp.json").then((data) => {
@@ -49,8 +50,6 @@ function loadData() {
 
             const ampTemp = (d.temp - annualMeanTemp) * (1 + scalingFactor) + meanTemp;
 
-            const month = getMonth(d.dayOfYear);
-
             return {
                 ...d,
                 amplifiedTemp: isNaN(ampTemp) ? null : ampTemp
@@ -89,6 +88,9 @@ function drawArt() {
     const x = d3.scaleLinear()
         .domain([0, cleanData[0].length - 1])
         .range([marginLeft, width - marginRight])
+
+    const m = cleanData.map((_, i) => i);  
+    console.log(m);  
 
     const y = d3.scalePoint()
         .domain(cleanData.map((_, i) => i))
@@ -193,9 +195,6 @@ function drawArt() {
                 d3.select(this.parentNode).select(".line-path").attr("stroke", "url(#tempGradient)");
                 d3.select(this).attr("fill", "url(#tempGradient)");
 
-                //console.log(`Z value: ${z((locateFirstDataPointByYear(d.year)))}`);
-
-
                 yearLabel
                     //.attr("y", z((locateFirstDataPointByYear(d.year)))) 
                     .attr("transform", `translate(0, ${z(locateFirstDataPointByYear(d.year))})`)
@@ -293,6 +292,55 @@ function scrollEffect() {
     });
 }
 
+
+document.addEventListener("DOMContentLoaded", () => {
+    const rightSideImage = document.querySelector('.right-side-image');
+    const leftSideImage = document.querySelector('.left-side-image');
+
+    attachMouseEvents(rightSideImage);
+    attachMouseEvents(leftSideImage);
+
+    function attachMouseEvents(image) {
+        let bounds;
+
+        // Define the event handler outside of the event listener
+        const handleMouseMove = (e) => rotateToMouse(e, image, bounds);
+
+        image.addEventListener('mouseenter', () => {
+            bounds = image.getBoundingClientRect();
+            document.addEventListener('mousemove', handleMouseMove);
+        });
+
+        image.addEventListener('mouseleave', () => {
+            console.log("Mouse has left");
+            document.removeEventListener('mousemove', handleMouseMove);
+            // Reset transform when mouse leaves
+            image.style.transform = '';
+        });
+    }
+
+    function rotateToMouse(e, image, bounds) {
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+        const leftX = mouseX - bounds.x;
+        const topY = mouseY - bounds.y;
+        const center = {
+            x: leftX - bounds.width / 2,
+            y: topY - bounds.height / 2
+        };
+        const distance = Math.sqrt(center.x ** 2 + center.y ** 2);
+
+        image.style.transform = `
+            scale3d(1.05, 1.05, 1.05)
+            rotate3d(
+                ${center.y / 100},
+                ${-center.x / 100},
+                0,
+                ${Math.log(distance) * 2}deg
+            )
+        `;
+    }
+});
 
 
 

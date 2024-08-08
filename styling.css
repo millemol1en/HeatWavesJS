@@ -3,46 +3,54 @@
 */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap');
 
-html{
+html {
 	height: 100%;
 	font-family: 'Inter', sans-serif;
-	background-color: #161511;
+	background-color: #090909;
 }
-body{
+
+body {
 	height: 100%;
 }
-nav{
+
+nav {
 	position: fixed;
 	top: 2%;
 	left: 2%;
 	bottom: auto;
 	z-index: 10;
 }
-ul{
+
+ul {
 	list-style: none;
 	padding: 0;
 }
-li{
+
+li {
 	padding: 10px 0;
 }
-span{
+
+span {
 	display: inline-block;
 	position: relative;
 }
-nav a{
+
+nav a {
 	display: inline-block;
 	color: #272727;
 	text-decoration: none;
 	font-size: 1em;
 }
-.circle{
+
+.circle {
 	height: 10px;
 	width: 10px;
 	left: -10px;
 	border-radius: 50%;
 	background-color: #272727;
 }
-.rect{
+
+.rect {
 	height: 3px;
 	width: 0px;
 	left: 0;
@@ -52,28 +60,32 @@ nav a{
 	-moz-transition: -webkit-transform 0.6s, width 1s;
 	transition: transform 0.6s, width 1s;
 }
-nav a:hover, nav .active{
+
+nav a:hover, nav .active {
 	color: #9b59b6;
 }
-nav a:hover span, nav .active span{
+
+nav a:hover span, nav .active span {
 	background-color: #9b59b6;
 }
-nav .active .rect{
+
+nav .active .rect {
 	width: 30px;
 }
-.content-section{
+
+.content-section {
 	position: relative;
-    z-index: 2;
-	backdrop-filter: blur(4px);
+    /* z-index: 2; */
+	/* backdrop-filter: blur(4px); */
 	color: #fff;
 	font-size: 30px;
-	padding: 0px;
-	border-radius: 10px;
-	box-shadow: 2px 5px 50px rgba(0,0,0,0.5);
-	width: 85%;
+	margin: 40px 0px 40px 0px;
+	/* border-radius: 10px; */
+	/* box-shadow: 2px 5px 50px rgba(0,0,0,0.5); */
+	width: 90%;
 	height: 85%;
 	left: 50%;
-	background-color: #090909;
+	/* background-color: red; */
     -webkit-transform: translateX(-50%);
     -moz-transform: translateX(-50%);
     -ms-transform: translateX(-50%);
@@ -81,15 +93,11 @@ nav .active .rect{
     transform: translateX(-50%);
 	text-align: center;transform: translateX(-50%);
     opacity: 0; /* Start hidden */
-    transition: opacity 0.5s ease-in-out; 
+    transition: opacity 0.5s ease-in-out;  
 }
 
-#section3{
-    background-color: #090909;
-	height: 120vh;
-}
 
-.content-section h1{
+.content-section h1 {
 	position: relative;
 	top: 50%;
 	left: 50%;
@@ -102,6 +110,188 @@ nav .active .rect{
 	font-size: 3em;
 }
 
-.content-section.active{
-    opacity: 1; /* Fully visible when active */
+.content-section.active {
+	opacity: 1; /* Fully visible when active */
+}
+
+
+/********************************
+
+	SECTION 2 & SECTION 3 GENERAL LAYOUT
+
+*********************************/
+.split-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+}
+  
+.card {
+	flex: 1;
+	background-color: #1e1e1e; /* Background color for the card */
+	border-radius: 10px;
+	box-shadow: 2px 5px 20px rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: space-between;
+}
+  
+.card-image {
+	position: relative;
+	max-width: 220px;
+	height: auto;
+	border-radius: 0 10px 10px 0; 
+}
+  
+.card-content {
+	flex: 1;
+	text-align: left;
+	color: #fff;
+	padding-right: 8px;
+}
+  
+.card-content h2 {
+	margin: 10px 0px 0px 10px;
+	font-size: 24px;
+	color: #9b59b6;
+}
+  
+.card-content p {
+	margin: 0px 0px 0px 10px;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    border-radius: 10px; /* Match border-radius of the image */
+    pointer-events: none; /* Prevent interaction with the glow effect */
+    background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.4), rgba(0, 0, 0, 0));
+    transition: background-image 300ms ease-out;
+}
+
+/********************************
+
+	SECTION 2 - J. Bell & PSR b1919+21
+
+*********************************/
+#section2 {
+	position: relative;
+}
+
+.left-image {
+	flex: 1;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+  
+.left-side-image {
+	max-width: 460px;
+	height: auto;
+	border-radius: 2px;
+	transition: transform 300ms ease-out, box-shadow 150ms ease-out;
+	position: relative;
+	transform: rotate3d(0);
+}
+
+.top-right-image {
+	position: absolute;
+	top: 0;
+	right: 0;
+	max-width: 500px; /* Adjust size as needed */
+	z-index: -1;
+	transform: rotate(-1.449rad);
+	margin-top: -100px;
+}
+
+#jb-card {
+	margin-top: 200px;
+}
+
+
+/*
+
+	SECTION 3 - JOY DIVISION
+
+*/
+
+.right-image {
+	flex: 1;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+  
+.right-side-image {
+	max-width: 100%;
+	height: auto;
+	border-radius: 10px; /* Optional: if you want rounded corners for the image */
+}
+
+.right-side-image {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	transition: transform 300ms ease-out, box-shadow 150ms ease-out;
+	position: relative;
+	transform: rotate3d(0);
+}
+
+
+/*
+
+	CSS FOR SMALLER SCREENS
+
+*/  
+@media (max-width: 768px) {
+	.split-container {
+	  flex-direction: column;
+	}
+  
+	.left-image {
+	  margin-bottom: 20px;
+	}
+  
+	.card-container {
+	  margin-left: 0;
+	  padding-top: 20px; /* Adjust for smaller screens */
+	}
+  
+	.card {
+	  flex-direction: column;
+	  align-items: flex-start;
+	}
+  
+	.card-content {
+	  padding-right: 0;
+	  margin-bottom: 20px;
+	}
+  
+	.card img {
+	  border-radius: 10px; /* Full border radius for smaller screens */
+	  max-width: 100%; /* Ensure the image takes full width in smaller screens */
+	}
+  
+	.top-right-image {
+	  position: static;
+	  margin-bottom: 20px;
+	  max-width: 100%; /* Ensure the image takes full width in smaller screens */
+	}
+}
+
+/********************************
+
+	SECTION 4 - THE ART PIECE
+
+*********************************/
+
+#section4 {
+	background-color: #090909;
+	height: 120vh;
 }
