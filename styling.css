@@ -130,34 +130,37 @@ nav .active .rect {
   
 .card {
 	flex: 1;
-	background-color: #1e1e1e; /* Background color for the card */
 	border-radius: 10px;
 	box-shadow: 2px 5px 20px rgba(0, 0, 0, 0.5);
 	display: flex;
 	justify-content: space-between;
+	background: rgba(255, 255, 255, 0.05);
+	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
 }
   
 .card-image {
 	position: relative;
 	max-width: 220px;
 	height: auto;
-	border-radius: 0 10px 10px 0; 
+	border-radius: 0 10px 10px 0;
 }
   
 .card-content {
 	flex: 1;
 	text-align: left;
-	color: #fff;
 	padding-right: 8px;
 }
-  
+
 .card-content h2 {
 	margin: 10px 0px 0px 10px;
 	font-size: 24px;
 	color: #9b59b6;
 }
-  
+
 .card-content p {
+	color: #fff;
 	margin: 0px 0px 0px 10px;
 	font-size: 14px;
 	line-height: 1.4;
@@ -202,12 +205,11 @@ nav .active .rect {
 
 .top-right-image {
 	position: absolute;
-	top: 0;
-	right: 0;
-	max-width: 500px; /* Adjust size as needed */
+	top: 50%;
+  	left: 50%;
+	max-width: 1600px; /* Adjust size as needed */
 	z-index: -1;
-	transform: rotate(-1.449rad);
-	margin-top: -100px;
+	transform: translate(-50%, -50%);
 }
 
 #jb-card {
