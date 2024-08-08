@@ -17,6 +17,9 @@ const marginBottom  = 20;
 const marginLeft    = 40;
 const overlap       = 14;
 
+let x, y, z, area, line;
+
+
 function loadData() {
     return d3.json("./data/Daily_Ocean_Surface_Temp.json").then((data) => {
         let tempData = data.flatMap((yearlyData, yearIndex) => 
@@ -29,15 +32,11 @@ function loadData() {
             .filter(d => !isNaN(d.temp) && d.year !== 2024)
         );
 
-        console.log(tempData);
-
         // [0] Map the data and retrieve only the necessary variables
         rawData = Array
             .from(d3.group(tempData, d => d.year).values())
             .map(yearData => yearData.length === 366 ? yearData.slice(0, 365) : yearData)
             .sort((a, b) => b[0].year - a[0].year);
-
-        console.log(rawData);
 
         // [1] Calculate mean temperature based on all temperature values
         const meanTemp = d3.mean(tempData, d => d.temp);
@@ -58,7 +57,6 @@ function loadData() {
         cleanData = tempData.map(d => {
             const annualMeanTemp = getAnnualMeanTemp(d.year);
             const scalingFactor = getScalingFactor(d.dayOfYear);
-
             const ampTemp = (d.temp - annualMeanTemp) * (1 + scalingFactor) + meanTemp;
 
             return {
@@ -71,149 +69,18 @@ function loadData() {
             .from(d3.group(cleanData, d => d.year).values())
             .map(yearData => yearData.length === 366 ? yearData.slice(0, 365) : yearData)
             .sort((a, b) => b[0].year - a[0].year);
-
-        console.log(cleanData);
     });
 }
 
 function app() {
     loadData().then(() => {
-        drawArt(rawData);
+        drawArt(cleanData);
+        addEventListeners();
     });
     scrollEffect();
 
     
 }
-
-/*
-    const x = d3.scaleLinear()
-        .domain([0, dataset[0].length - 1])
-        .range([marginLeft, width - marginRight]);
-
-    const y = d3.scalePoint()
-        .domain(dataset.map((_, i) => i))
-        .range([marginTop, height - marginBottom]);
-
-    const z = d3.scaleLinear()
-        .domain([minTemp, maxTemp])
-        .range([0, -overlap * y.step()]);
-
-    const area = d3.area()
-        .defined(d => !isNaN(d.temp))
-        .x((_, i) => x(i))
-        .y0(0)
-        .y1(d => z(d.temp))
-        .curve(d3.curveBasis);
-
-    const line = area.lineY1();
-
-    // Create the SVG container
-    const svg = d3.select("#art-container").append("svg")
-        .attr("width", width)
-        .attr("height", height);
-
-    // Create the series groups
-    const serie = svg.append("g")
-        .selectAll("g")
-        .data(dataset)
-        .enter()
-        .append("g")
-        .attr("transform", (d, i) => `translate(0, ${y(i) + 1})`);
-
-    // Draw area and line paths
-    serie.append("path")
-        .attr("fill", "#000")
-        .attr("d", area)
-        .attr("class", "area-path");
-
-    serie.append("path")
-        .attr("fill", "none")
-        .attr("stroke", "white")
-        .attr("d", line)
-        .attr("class", "line-path");
-
-    // Define gradient
-    svg.append("defs").append("linearGradient")
-        .attr("id", "tempGradient")
-        .attr("x1", "0%")
-        .attr("x2", "0%")
-        .attr("y1", "0%")
-        .attr("y2", "100%")
-        .append("stop")
-        .attr("offset", "0%")
-        .attr("stop-color", "red");
-
-    svg.select("defs").select("linearGradient")
-        .append("stop")
-        .attr("offset", "100%")
-        .attr("stop-color", "blue");
-
-    // Year label
-    const yearLabel = svg.append("text")
-        .attr("x", marginLeft - 10)
-        .attr("y", marginTop)
-        .attr("text-anchor", "end")
-        .attr("fill", "white")
-        .attr("font-size", "12px")
-        .attr("visibility", "hidden");
-
-    // Add circles for data points
-    serie.selectAll("circle")
-        .data(d => d)
-        .enter()
-        .append("circle")
-        .attr("cx", (_, i) => x(i))
-        .attr("cy", d => z(d.temp))
-        .attr("r", 5)
-        .attr("fill", "none")
-        .attr("opacity", 0.4)
-        .attr("pointer-events", "all")
-        .on("mouseover", function(event, d) {
-            const locateFirstDataPointByYear = (year) => dataset.find(d => d[0].year === year)[0].temp;
-
-            d3.select(this.parentNode).select(".line-path").attr("stroke", "url(#tempGradient)");
-            d3.select(this).attr("fill", "url(#tempGradient)");
-
-            yearLabel
-                .attr("transform", `translate(0, ${z(locateFirstDataPointByYear(d.year))})`)
-                .attr("visibility", "visible")
-                .text(d.year);
-        })
-        .on("mouseout", function(event, d) {
-            d3.select(this.parentNode).select(".line-path").attr("stroke", "white");
-            d3.select(this).attr("fill", "none");
-
-            yearLabel.attr("visibility", "hidden");
-        });
-
-    // X axis
-    const monthStartDays = [
-        { month: "Jan", day: 0 },
-        { month: "Feb", day: 31 },
-        { month: "Mar", day: 59 },
-        { month: "Apr", day: 90 },
-        { month: "May", day: 120 },
-        { month: "Jun", day: 151 },
-        { month: "Jul", day: 181 },
-        { month: "Aug", day: 212 },
-        { month: "Sep", day: 243 },
-        { month: "Oct", day: 273 },
-        { month: "Nov", day: 304 },
-        { month: "Dec", day: 334 }
-    ];
-
-    const xAxis = d3.axisBottom(x)
-        .tickValues(monthStartDays.map(d => d.day))
-        .tickFormat((d, i) => monthStartDays[i].month)
-        .ticks(width / 80);
-
-    svg.append("g")
-        .attr("transform", `translate(0,${height - marginBottom})`)
-        .call(xAxis)
-        .call(g => g.selectAll("text").attr("fill", "white"))
-        .call(g => g.selectAll("line").attr("stroke", "white"))
-        .call(g => g.selectAll("path").attr("stroke", "white"));
-*/
 
 function drawArt(dataset) {
     // [0]
@@ -222,26 +89,26 @@ function drawArt(dataset) {
     const [minTemp, maxTemp] = [d3.min(dataset, d => d3.min(d, d => d.temp)), d3.max(dataset, d => d3.max(d, d => d.temp))];
 
     // [1]
-    const x = d3.scaleLinear()
-        .domain([0, dataset[0].length - 1])
+    x = d3.scaleLinear()
+        .domain(xDomain)
         .range([marginLeft, width - marginRight]);
 
-    const y = d3.scalePoint()
-        .domain(dataset.map((_, i) => i))
+    y = d3.scalePoint()
+        .domain(yDomain)
         .range([marginTop, height - marginBottom]);
 
-    const z = d3.scaleLinear()
+    z = d3.scaleLinear()
         .domain([minTemp, maxTemp])
         .range([0, -overlap * y.step()]);
 
-    const area = d3.area()
+    area = d3.area()
         .defined(d => !isNaN(d.temp))
         .x((_, i) => x(i))
         .y0(0)
         .y1(d => z(d.temp))
         .curve(d3.curveBasis);
 
-    const line = area.lineY1();
+    line = area.lineY1();
 
     // Create the SVG container
     const svg = d3.select("#art-container").append("svg")
@@ -251,10 +118,10 @@ function drawArt(dataset) {
     // Create the series groups
     const serie = svg.append("g")
         .selectAll("g")
-        .data(dataset)
+        .data(dataset, d => d[0].year)
         .enter()
         .append("g")
-        .attr("transform", (d, i) => `translate(0, ${y(i) + 1})`);
+        .attr("transform", (_, i) => `translate(0, ${y(i) + 1})`);
 
     // Draw area and line paths
     serie.append("path")
@@ -352,43 +219,56 @@ function drawArt(dataset) {
 }
 
 function updateArt(newData) {
-    const x = d3.scaleLinear()
+    console.log(newData);
+
+    y = d3.scalePoint()
+        .domain(newData.map((_, i) => i))
+        .range([marginTop, height - marginBottom]);
+
+    x = d3.scaleLinear()
         .domain([0, newData[0].length - 1])
         .range([marginLeft, width - marginRight]);
 
-    const z = d3.scaleLinear()
+    z = d3.scaleLinear()
         .domain([
             d3.min(newData, d => d3.min(d, d => d.temp)),
             d3.max(newData, d => d3.max(d, d => d.temp))
         ])
         .range([0, -overlap * y.step()]);
 
-    const area = d3.area()
+    area = d3.area()
         .defined(d => !isNaN(d.temp))
         .x((_, i) => x(i))
         .y0(0)
         .y1(d => z(d.temp))
         .curve(d3.curveBasis);
 
-    const line = area.lineY1();
+    line = area.lineY1();
 
-    const svg = d3.select("#art-container svg");
+    const serie = d3.select("#art-container").selectAll("g").data(newData, d => {
+        if (d && d[0]) { 
+            return d[0].year; 
+        } else {
+            console.warn("Skipping undefined or empty dataset:", d);
+            return null;  // Return null to avoid binding faulty data
+        }
+    });
 
-    const serie = svg.selectAll("g")
-        .data(newData);
-
+    // []
     serie.selectAll(".area-path")
         .data(d => [d])
         .transition()
         .duration(1000)
         .attr("d", area);
 
+    // []
     serie.selectAll(".line-path")
         .data(d => [d])
         .transition()
         .duration(1000)
         .attr("d", line);
 
+    // []
     serie.selectAll("circle")
         .data(d => d)
         .transition()
@@ -398,13 +278,17 @@ function updateArt(newData) {
 
 function addEventListeners() {
     document.getElementById("raw-view-button").addEventListener("click", () => {
+        console.log("Raw click!");
+        if (!isRawActive) updateArt(rawData);
+        console.log(rawData);
         isRawActive = true;
-        updateArt(rawData);
     });
 
     document.getElementById("artistic-view-button").addEventListener("click", () => {
+        console.log("Clean click!");
+        if (isRawActive) updateArt(cleanData);
+        console.log(cleanData);
         isRawActive = false;
-        updateArt(cleanData);
     });
 }
 
