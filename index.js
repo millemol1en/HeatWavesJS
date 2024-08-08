@@ -8,7 +8,7 @@ let rawData     = [];
 let cleanData   = [];
 let isRawActive = false;
 
-// [0] Global constants
+// [0] Global constants:
 const width         = 900;
 const height        = 700;
 const marginTop     = 200;
@@ -17,14 +17,16 @@ const marginBottom  = 20;
 const marginLeft    = 40;
 const overlap       = 14;
 
+// [1] Dynamic variables which will be changed throughout: 
 let x, y, z, area, line;
 
+// [2] Info box:
 let infoBox = d3.select("#info-box");
 let infoYear = d3.select("#info-year");
 let infoCurrentTemp = d3.select("#info-current-temp");
 let infoHottestTemp = d3.select("#info-hottest-temp");
 
-
+// [3] Function to load, clean and prepare the data:
 function loadData() {
     return d3.json("./data/Daily_Ocean_Surface_Temp.json").then((data) => {
         let tempData = data.flatMap((yearlyData, yearIndex) => 
@@ -37,28 +39,28 @@ function loadData() {
             .filter(d => !isNaN(d.temp) && d.year !== 2024)
         );
 
-        // [0] Map the data and retrieve only the necessary variables
+        // [3.0] Map the data and retrieve only the necessary variables
         rawData = Array
             .from(d3.group(tempData, d => d.year).values())
             .map(yearData => yearData.length === 366 ? yearData.slice(0, 365) : yearData)
             .sort((a, b) => b[0].year - a[0].year);
 
-        // [1] Calculate mean temperature based on all temperature values
+        // [3.1] Calculate mean temperature based on all temperature values
         const meanTemp = d3.mean(tempData, d => d.temp);
 
-        // [2] Calculate the mean temperature based on an individual year
+        // [3.2] Calculate the mean temperature based on an individual year
         function getAnnualMeanTemp(year) {
             const yearData = tempData.filter(d => d.year === year);
             return d3.mean(yearData, d => d.temp);
         }
 
-        // [2] Define scaling factor function - fix this 
+        // [3.2] Define scaling factor function - fix this 
         const getScalingFactor = (dayOfYear) => {
             const radians = (2 * Math.PI * dayOfYear) / 365;      // [2.1] Convert day of year to radians
             return (1 + (Math.sin(radians - Math.PI / 2))) * 10.0;     // [2.2] Sinusoidal function, peaks at mid-year
         };
 
-        // [3] Generate amplified data
+        // [3.3] Generate the artistic data:
         cleanData = tempData.map(d => {
             const annualMeanTemp = getAnnualMeanTemp(d.year);
             const scalingFactor = getScalingFactor(d.dayOfYear);
@@ -77,23 +79,15 @@ function loadData() {
     });
 }
 
-function app() {
-    loadData().then(() => {
-        drawArt(cleanData);
-        addEventListeners();
-    });
-    scrollEffect();
-
-    
-}
-
+// [4] Draw the artistic graphic:
 function drawArt(dataset) {
-    // [0]
+    // [4.0] Constants to be used throughout the entire life-time of the graphic - NOT DYNAMIC:
     const xDomain = [0, dataset[0].length - 1];
     const yDomain = dataset.map((_, i) => i);
     const [minTemp, maxTemp] = [d3.min(dataset, d => d3.min(d, d => d.temp)), d3.max(dataset, d => d3.max(d, d => d.temp))];
 
-    // [1]
+    // [4.1] Setting X, Y and Z scales - Y & Z are combined together to form the "Y" used in the actual graphic
+    //       We do this as we have 2 Y-axis variables, the temperature and the year. 
     x = d3.scaleLinear()
         .domain(xDomain)
         .range([marginLeft, width - marginRight]);
@@ -106,6 +100,7 @@ function drawArt(dataset) {
         .domain([minTemp, maxTemp])
         .range([0, -overlap * y.step()]);
 
+    // [4.2] The area is defined to allow stacking:
     area = d3.area()
         .defined(d => !isNaN(d.temp))
         .x((_, i) => x(i))
@@ -113,14 +108,15 @@ function drawArt(dataset) {
         .y1(d => z(d.temp))
         .curve(d3.curveBasis);
 
+    // [4.3] The line is used to carve the waves into the area:
     line = area.lineY1();
 
-    // [] Create the SVG container
+    // [4.4] Create the SVG container:
     const svg = d3.select("#art-container").append("svg")
         .attr("width", width)
         .attr("height", height);
 
-    // [] Create the series groups
+    // [4.5] Create the series groups:
     const serie = svg.append("g")
         .selectAll("g")
         .data(dataset, d => d[0].year)
@@ -128,7 +124,7 @@ function drawArt(dataset) {
         .append("g")
         .attr("transform", (_, i) => `translate(0, ${y(i) + 1})`);
 
-    // [] Draw area and line paths
+    // [4.6] Draw area and line paths:
     serie.append("path")
         .attr("fill", "#000")
         .attr("d", area)
@@ -140,7 +136,7 @@ function drawArt(dataset) {
         .attr("d", line)
         .attr("class", "line-path");
 
-    // Define gradient
+    // [4.7] Define gradient:
     svg.append("defs").append("linearGradient")
         .attr("id", "tempGradient")
         .attr("x1", "0%")
@@ -156,7 +152,8 @@ function drawArt(dataset) {
         .attr("offset", "100%")
         .attr("stop-color", "blue");    
 
-    // Add circles for data points
+    // [4.8] Add circles for data points when performing the hover as well as the ability to perform
+    //       "onclick" mouse interaction to get the temperature:
     serie.selectAll("circle")
         .data(d => d)
         .enter()
@@ -180,16 +177,11 @@ function drawArt(dataset) {
             }
         })
         .on("click", function(event, d) {
-            const yearData = dataset.find(yd => yd[0].year === d.year);
-            const hottestTemp = d3.max(yearData, d => d.temp);
-
-            // Update info box
             infoYear.html(`<strong>Year:</strong> ${d.year}`);
             infoCurrentTemp.html(`<strong>Current Temp:</strong> ${d.temp.toFixed(2)} °C`);
-            infoHottestTemp.html(`<strong>Hottest Temp:</strong> ${hottestTemp.toFixed(2)} °C`);
         });
 
-    // X axis
+    // [4.9] Define the months for the X-axis:
     const monthStartDays = [
         { month: "Jan", day: 0 },
         { month: "Feb", day: 31 },
@@ -205,12 +197,13 @@ function drawArt(dataset) {
         { month: "Dec", day: 334 }
     ];
 
-    // [] Create the X-axis:
+    // [4.10] Create the X-axis:
     const xAxis = d3.axisBottom(x)
         .tickValues(monthStartDays.map(d => d.day))
         .tickFormat((_, i) => monthStartDays[i].month)
         .ticks(width / 80);
 
+    // [4.11] Append it and then apply transition to it:
     svg.append("g")
         .attr("class", "x-axis")
         .attr("transform", `translate(0,${height - marginBottom})`)
@@ -226,6 +219,7 @@ function drawArt(dataset) {
         .style("opacity", 0);
 }
 
+// [5] Function used to dynamically update the graphic:
 function updateArt(newData) {
     y = d3.scalePoint()
         .domain(newData.map((_, i) => i))
@@ -255,40 +249,40 @@ function updateArt(newData) {
 
     if (newData === cleanData) {
         xAxis.transition()
-            .duration(500)  // Duration of the fade-out effect
+            .duration(500)  
             .style("opacity", 0)
             .on("end", () => xAxis.style("display", "none"));  // Ensure it's hidden after the fade-out
     } else {
         xAxis.style("display", "block")
             .transition()
-            .duration(500)  // Duration of the fade-in effect
+            .duration(500) 
             .style("opacity", 1);
     }
 
+    // [5.1] Crucial "if-statement" used to filter out the values which cause a run-time exception:
     const serie = d3.select("#art-container").selectAll("g").data(newData, d => {
         if (d && d[0]) { 
             return d[0].year; 
         } else {
             console.warn("Skipping undefined or empty dataset:", d);
-            return null;  // Return null to avoid binding faulty data
+            return null;  
         }
     });
 
-    // []
+    // [5.2] Part used to allow the dynamic transition of the data between the 2 datasets, specifically 
+    //       "rawData" and "cleanData"
     serie.selectAll(".area-path")
         .data(d => [d])
         .transition()
         .duration(1000)
         .attr("d", area);
 
-    // []
     serie.selectAll(".line-path")
         .data(d => [d])
         .transition()
         .duration(1000)
         .attr("d", line);
 
-    // []
     serie.selectAll("circle")
         .data(d => d)
         .transition()
@@ -316,24 +310,24 @@ function addEventListeners() {
     });
 }
 
-// [] jQuery used to operate the smooth scrolling between the <section> elements:
+// [6] jQuery used to operate the smooth scrolling between the <section> elements:
 function scrollEffect() {
     $(document).ready(function() {
         var contentSections = $('.content-section');
         var navigation = $('nav');
 
-        // [] Smooth scroll to the section when a nav link is clicked
+        // [6.1] Smooth scroll to the section when a nav link is clicked
         navigation.on('click', 'a', function(event) {
             event.preventDefault(); // Prevent default action
             smoothScroll($(this.hash));
         });
 
-        // [] Update navigation and section visibility on scroll
+        // [6.2] Update navigation and section visibility on scroll
         $(window).on('scroll', function() {
             updateNavigation();
         });
 
-        // [] Initial update for navigation and sections visibility
+        // [6.3] Initial update for navigation and sections visibility
         updateNavigation();
 
         function updateNavigation() {
@@ -348,10 +342,9 @@ function scrollEffect() {
                 var sectionHeight = section.height();
                 var sectionBottom = sectionOffset + sectionHeight;
 
-                // Section is considered active if it is at least halfway in view
+                // [6.4] Section is considered active if it is at least halfway in view
                 var isActive = (scrollTop + windowHeight > sectionOffset + sectionHeight / 2) &&
                                (scrollTop < sectionBottom - sectionHeight / 2);
-
                 if (isActive) {
                     section.addClass('active');
                     navigationMatch.addClass('active');
@@ -370,6 +363,7 @@ function scrollEffect() {
     });
 }
 
+// [7] Just used to check whether the info box should be visible or not:
 function toggleInfoBoxVisibility() {
     if (isRawActive) {
         infoBox.style("display", "block");
@@ -378,7 +372,7 @@ function toggleInfoBoxVisibility() {
     }
 }
 
-// []
+// [8] Event listener to make the images interactive - specifically the Cambridge book and the album cover:
 document.addEventListener("DOMContentLoaded", () => {
     const rightSideImage = document.querySelector('.right-side-image');
     const leftSideImage = document.querySelector('.left-side-image');
@@ -386,10 +380,10 @@ document.addEventListener("DOMContentLoaded", () => {
     attachMouseEvents(rightSideImage);
     attachMouseEvents(leftSideImage);
 
+    // [8.1] Used to attach mouse events to the images:
     function attachMouseEvents(image) {
         let bounds;
 
-        // Define the event handler outside of the event listener
         const handleMouseMove = (e) => rotateToMouse(e, image, bounds);
 
         image.addEventListener('mouseenter', () => {
@@ -405,6 +399,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // [8.2] Used to perform the necessary mathematics to rotate the images around:
     function rotateToMouse(e, image, bounds) {
         const mouseX = e.clientX;
         const mouseY = e.clientY;
@@ -429,5 +424,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// [9] Run the application:
+function app() {
+    loadData().then(() => {
+        drawArt(cleanData);
+        addEventListeners();
+    });
+    scrollEffect();   
+}
 
 app();

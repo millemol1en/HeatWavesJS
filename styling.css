@@ -342,16 +342,19 @@ input[type="radio"]:focus + .btn-option {
     top: 40%;
     transform: translateY(-50%);
     width: 180px; /* Slim width */
+	height: 100px;
     padding: 10px;
-    background-color: rgba(255, 255, 255, 0.9);
-    border: 1px solid #ccc;
+	border-radius: 10px;
+	border-color: #fff;
+	border-width: 4px;
+	border-style: solid;
+    background-color: #090909;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
     font-family: Arial, sans-serif;
     text-align: left;
 	display: none;
     pointer-events: none;
 	margin-left: 100px;
-
 }
 
 .info-box div {
