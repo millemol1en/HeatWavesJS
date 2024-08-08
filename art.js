@@ -9,8 +9,8 @@ let cleanData   = [];
 let isRawActive = false;
 
 // [0] Global constants
-const width         = 980;
-const height        = 740;
+const width         = 900;
+const height        = 700;
 const marginTop     = 200;
 const marginRight   = 40;
 const marginBottom  = 20;
@@ -110,12 +110,12 @@ function drawArt(dataset) {
 
     line = area.lineY1();
 
-    // Create the SVG container
+    // [] Create the SVG container
     const svg = d3.select("#art-container").append("svg")
         .attr("width", width)
         .attr("height", height);
 
-    // Create the series groups
+    // [] Create the series groups
     const serie = svg.append("g")
         .selectAll("g")
         .data(dataset, d => d[0].year)
@@ -123,7 +123,7 @@ function drawArt(dataset) {
         .append("g")
         .attr("transform", (_, i) => `translate(0, ${y(i) + 1})`);
 
-    // Draw area and line paths
+    // [] Draw area and line paths
     serie.append("path")
         .attr("fill", "#000")
         .attr("d", area)
@@ -172,21 +172,25 @@ function drawArt(dataset) {
         .attr("opacity", 0.4)
         .attr("pointer-events", "all")
         .on("mouseover", function(event, d) {
-            const locateFirstDataPointByYear = (year) => dataset.find(d => d[0].year === year)[0].temp;
+            if (isRawActive) {
+                const locateFirstDataPointByYear = (year) => dataset.find(d => d[0].year === year)[0].temp;
 
-            d3.select(this.parentNode).select(".line-path").attr("stroke", "url(#tempGradient)");
-            d3.select(this).attr("fill", "url(#tempGradient)");
+                d3.select(this.parentNode).select(".line-path").attr("stroke", "url(#tempGradient)");
+                d3.select(this).attr("fill", "url(#tempGradient)");
 
-            yearLabel
-                .attr("transform", `translate(0, ${z(locateFirstDataPointByYear(d.year))})`)
-                .attr("visibility", "visible")
-                .text(d.year);
+                yearLabel
+                    .attr("transform", `translate(0, ${z(locateFirstDataPointByYear(d.year))})`)
+                    .attr("visibility", "visible")
+                    .text(d.year);
+            }
         })
         .on("mouseout", function(event, d) {
-            d3.select(this.parentNode).select(".line-path").attr("stroke", "white");
-            d3.select(this).attr("fill", "none");
-
-            yearLabel.attr("visibility", "hidden");
+            if (isRawActive) {
+                d3.select(this.parentNode).select(".line-path").attr("stroke", "white");
+                d3.select(this).attr("fill", "none");
+    
+                yearLabel.attr("visibility", "hidden");
+            }
         });
 
     // X axis
@@ -205,17 +209,25 @@ function drawArt(dataset) {
         { month: "Dec", day: 334 }
     ];
 
+    // [] Create the X-axis:
     const xAxis = d3.axisBottom(x)
         .tickValues(monthStartDays.map(d => d.day))
-        .tickFormat((d, i) => monthStartDays[i].month)
+        .tickFormat((_, i) => monthStartDays[i].month)
         .ticks(width / 80);
 
     svg.append("g")
+        .attr("class", "x-axis")
         .attr("transform", `translate(0,${height - marginBottom})`)
         .call(xAxis)
         .call(g => g.selectAll("text").attr("fill", "white"))
         .call(g => g.selectAll("line").attr("stroke", "white"))
         .call(g => g.selectAll("path").attr("stroke", "white")); 
+
+    d3.select(".x-axis")
+        .style("display", "none")
+        .transition()
+        .duration(500)  
+        .style("opacity", 0);
 }
 
 function updateArt(newData) {
@@ -244,6 +256,20 @@ function updateArt(newData) {
         .curve(d3.curveBasis);
 
     line = area.lineY1();
+
+    const xAxis = d3.select(".x-axis");
+
+    if (newData === cleanData) {
+        xAxis.transition()
+            .duration(500)  // Duration of the fade-out effect
+            .style("opacity", 0)
+            .on("end", () => xAxis.style("display", "none"));  // Ensure it's hidden after the fade-out
+    } else {
+        xAxis.style("display", "block")
+            .transition()
+            .duration(500)  // Duration of the fade-in effect
+            .style("opacity", 1);
+    }
 
     const serie = d3.select("#art-container").selectAll("g").data(newData, d => {
         if (d && d[0]) { 
